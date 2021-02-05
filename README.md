@@ -1,4 +1,4 @@
-# MDSV : An R package for estimating and forecasting financial data with MDSV model
+# An R package for estimating and forecasting financial data with MDSV model
 The **MDSV** package implements the Multifractal Discrete Stochastic Volatility developed in Augustyniak, et al. (2021) for estimating and forecasting financial log-returns and realized variances (uniquely or jointly). It includes all functions for the replication of the results in Augustyniak, et al. (2021) and in my thesis. The exact replication codes are located in the folder [**test**](https://github.com/Abdoulhaki/MDSV/tree/master/test).
 
 ## Installation
