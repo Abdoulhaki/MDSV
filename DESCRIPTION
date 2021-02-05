@@ -1,12 +1,13 @@
 Package: MDSV
 Type: Package
-Title: What the package does (short line)
+Title: Multifractal Discrete Stochastic Volatility
 Version: 1.0
 Date: 2021-01-31
-Author: Who wrote it
+Authors@R: person("Kassimou Abdoul Haki", "Maoude", role = c("cre","aut"), email =  "abdoulhaki.maoude@aiesec.net")
 Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Description: Estimating and forecasting financial data with MDSV model
+License: GPL-3 + file LICENSE
+URL: https://github.com/Abdoulhaki/MDSV
 Imports: Rcpp (>= 1.0.6)
 LinkingTo: Rcpp, RcppArmadillo, RcppEigen
 RoxygenNote: 7.1.1
