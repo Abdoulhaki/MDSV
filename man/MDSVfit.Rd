@@ -22,7 +22,7 @@ MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
 \value{
 A list consisting of:
     \item{ModelType}{type of model to be fitted.}
-    \item{LEVIER}{wheter the fit take the leverage effect in account or not.}
+    \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
     \item{N}{number of components for the MDSV process.}
     \item{K}{number of states of each MDSV process component.}
     \item{estimates}{estimated parameters.}
@@ -36,7 +36,7 @@ Method for fitting the MDSV model on log-retruns and realized variances (uniquel
 }
 \details{
 The MDSV optimization routine set of feasible starting points which are used to initiate the MDSV recursion. The 
-likelihood calculation is performed in \code{C++} through the \pkg{Rcpp} package. The optimization is performe using
+likelihood calculation is performed in \code{C++} through the \pkg{Rcpp} package. The optimization is perform using
 the solnp solver of the \pkg{Rsolnp} package and additional options can be supply to the fonction. 
 The leverage effect is taken into account according to the FHMV model (see Augustyniak et al., 2019). While fitting an
 univariate realized variances data, log-returns are required to add leverage effect.
@@ -60,7 +60,7 @@ ModelType <- 0           # Univariate log-returns
 LEVIER    <- FALSE       # No leverage effect
 
 # Model estimation
-out       <- MDSVfit(K=K,N=N,data=donne,ModelType = ModelType,LEVIER=LEVIER)
+out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
 # Summary
 summary(out)
 # Plot
@@ -75,12 +75,16 @@ ModelType <- 2           # Joint log-returns and realized variances
 LEVIER    <- TRUE        # No leverage effect
 
 # Model estimation
-out       <- MDSVfit(K=K,N=N,data=donne,ModelType = ModelType,LEVIER=LEVIER)
+out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
 # Summary
 summary(out)
 # Plot
 plot(out,"nic")
 }
+}
+\references{
+Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
+\emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
 }
 \seealso{
 For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.

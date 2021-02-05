@@ -6,7 +6,7 @@
 \alias{print.MDSVfit}
 \alias{plot.MDSVfit}
 \alias{print.plot.MDSVfit}
-\title{Summarize and Print MDSV Fitting}
+\title{Summarize, print and plot MDSV Fitting}
 \usage{
 \method{summary}{MDSVfit}(object, ...)
 
@@ -14,7 +14,7 @@
 
 \method{print}{MDSVfit}(x, ...)
 
-\method{plot}{MDSVfit}(x, plot.type = "both", ...)
+\method{plot}{MDSVfit}(x, plot.type = c("dis", "nic"), ...)
 
 \method{print}{plot.MDSVfit}(x, ...)
 }
@@ -23,16 +23,16 @@
 
 \item{...}{further arguments passed to or from other methods.}
 
-\item{x}{An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}}
-or class `MDSVfit` of the function \code{\link{MDSVfit}}.}
+\item{x}{An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}},
+class `MDSVfit` of the function \code{\link{MDSVfit}} or `plot.MDSVfit` of the function \code{\link{plot.MDSVfit}}.}
 
-\item{plot.type}{A character designing the type of plot. `"dis"` for the stationnary distribution of the volatilities,
-`"nic"` for the New Impact Curve (see. Engle and Ng, 1993).}
+\item{plot.type}{A character designing the type of plot. `dis` for the stationnary distribution of the volatilities,
+`nic` for the New Impact Curve (see. Engle and Ng, 1993).}
 }
 \value{
 A list consisting of:
     \item{ModelType}{type of model to be fitted.}
-    \item{LEVIER}{wheter the fit take the leverage effect in account or not.}
+    \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
     \item{N}{number of components for the MDSV process.}
     \item{K}{number of states of each MDSV process component.}
     \item{estimates}{estimated parameters.}
@@ -43,5 +43,13 @@ A list consisting of:
     \item{...}{further arguments passed to the function.}
 }
 \description{
-Summary and print methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
+Summary, print and plot methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
+}
+\details{
+`dis` as argument `plot.type` lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
+effect is not took into account for that plot.
+}
+\references{
+Engle, R. F., & Ng, V. K. (1993). Measuring and testing the impact of news on volatility. 
+\emph{The journal of finance}, 48(5), 1749-1778. \url{ https://doi.org/10.1111/j.1540-6261.1993.tb05127.x}
 }

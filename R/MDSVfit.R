@@ -8,7 +8,7 @@
 #' @param ... further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
 #' @return A list consisting of:
 #'     \item{ModelType}{type of model to be fitted.}
-#'     \item{LEVIER}{wheter the fit take the leverage effect in account or not.}
+#'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
 #'     \item{N}{number of components for the MDSV process.}
 #'     \item{K}{number of states of each MDSV process component.}
 #'     \item{estimates}{estimated parameters.}
@@ -33,6 +33,10 @@
 #' \link[base]{print} and \link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
 #' \code{\link{summary.MDSVfit}}, \code{\link{print.MDSVfit}} and \code{\link{plot.MDSVfit}} for more details.
 #' 
+#' @references  
+#' Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
+#' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
+#' 
 #' @seealso For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 #' @examples 
 #' \dontrun{
@@ -44,7 +48,7 @@
 #' LEVIER    <- FALSE       # No leverage effect
 #' 
 #' # Model estimation
-#' out       <- MDSVfit(K=K,N=N,data=donne,ModelType = ModelType,LEVIER=LEVIER)
+#' out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out)
 #' # Plot
@@ -59,7 +63,7 @@
 #' LEVIER    <- TRUE        # No leverage effect
 #' 
 #' # Model estimation
-#' out       <- MDSVfit(K=K,N=N,data=donne,ModelType = ModelType,LEVIER=LEVIER)
+#' out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out)
 #' # Plot
@@ -165,17 +169,17 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   return(out)
 }
 
-#' @title Summarize and Print MDSV Fitting
-#' @description Summary and print methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
+#' @title Summarize, print and plot MDSV Fitting
+#' @description Summary, print and plot methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
 #' @param object An object of class `MDSVfit`, output of the function \code{\link{MDSVfit}}.
-#' @param x An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}}
-#' or class `MDSVfit` of the function \code{\link{MDSVfit}}.
-#' @param plot.type A character designing the type of plot. `"dis"` for the stationnary distribution of the volatilities,
-#'  `"nic"` for the New Impact Curve (see. Engle and Ng, 1993).
+#' @param x An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}},
+#' class `MDSVfit` of the function \code{\link{MDSVfit}} or `plot.MDSVfit` of the function \code{\link{plot.MDSVfit}}.
+#' @param plot.type A character designing the type of plot. `dis` for the stationnary distribution of the volatilities,
+#'  `nic` for the New Impact Curve (see. Engle and Ng, 1993).
 #' @param ... further arguments passed to or from other methods.
 #' @return A list consisting of:
 #'     \item{ModelType}{type of model to be fitted.}
-#'     \item{LEVIER}{wheter the fit take the leverage effect in account or not.}
+#'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
 #'     \item{N}{number of components for the MDSV process.}
 #'     \item{K}{number of states of each MDSV process component.}
 #'     \item{estimates}{estimated parameters.}
@@ -184,6 +188,15 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #'     \item{BIC}{Bayesian Information Criteria of the model on the data.}
 #'     \item{data}{data use for the fitting.}
 #'     \item{...}{further arguments passed to the function.}
+#'
+#' @details 
+#' `dis` as argument `plot.type` lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
+#' effect is not took into account for that plot.
+#' 
+#' @references 
+#' Engle, R. F., & Ng, V. K. (1993). Measuring and testing the impact of news on volatility. 
+#' \emph{The journal of finance}, 48(5), 1749-1778. \url{ https://doi.org/10.1111/j.1540-6261.1993.tb05127.x}
+#' 
 #' @export
 "summary.MDSVfit" <- function(object, ...){
   stopifnot(class(object) == "MDSVfit")
@@ -235,9 +248,9 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #' @rdname summary.MDSVfit
 #' @importFrom graphics par
 #' @export
-"plot.MDSVfit" <- function(x, plot.type = "both", ...) {
+"plot.MDSVfit" <- function(x, plot.type = c("dis", "nic"), ...) {
   stopifnot(class(x) == "MDSVfit")
-  stopifnot(plot.type %in% c("dis", "nic", "both"))
+  stopifnot(prod(plot.type %in% c("dis", "nic"))==1)
   
   para      <- x$estimates
   if(is.null(para["b"])) {
@@ -262,7 +275,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   if (is.null(match.call()$mfrow)) {
     nrow         <- 1
     ncol         <- 1
-    if(plot.type == "both") ncol <- 2
+    if(length(plot.type)==2) ncol <- 2
     
     x            <- c(x, list(mfrow = c(nrow, ncol)))
   } 
@@ -293,7 +306,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   
   do.call("par", c(x[-(1:9)], list(...)))
   
-  if(plot.type == "dis"){
+  if("dis" %in% plot.type){
     temp<-aggregate(x=prob,by=list(round(sig,4)),FUN="sum")
     
     tmp           <- c(list(x = temp[,1],
@@ -304,7 +317,8 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
                             ylab = "probabilities",
                             ...  = ...), x[-(1:10)])
     do.call("plot", tmp)
-  } else if(plot.type == "nic"){
+  }
+  if("nic" %in% plot.type){
     temp      <- logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
     proba_lis <- temp$smoothed_proba
     
@@ -331,43 +345,6 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
                             ...  = ...), x[-(1:10)])
     do.call("plot", tmp)
     
-  }else{
-    temp<-aggregate(x=prob,by=list(round(sig,4)),FUN="sum")
-    
-    tmp           <- c(list(x = temp[,1],
-                            y = temp[,2],
-                            type = "l",
-                            main = "Density plot : Stationnary distribution\n of the volatilities",
-                            xlab = "volatilities",
-                            ylab = "probabilities",
-                            ...  = ...), x[-(1:10)])
-    do.call("plot", tmp)
-    
-    temp      <- logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
-    proba_lis <- temp$smoothed_proba
-    
-    n<-nrow(data)
-    s<-numeric(n)
-    for(i in 1:n) s[i]<-which.max(proba_lis[,i])
-    
-    if(LEVIER){
-      Levier<-levierVolatility(ech=data[,1],para=para,Model_type=ModelType)$`Levier`
-      V_t<-sig[s]*Levier
-    }else{
-      V_t<-sig[s]
-    }
-    
-    ind<-order(data[1:(n-1),1])
-    lo <- loess(V_t[ind]~data[ind,1])
-    
-    tmp           <- c(list(x=data[ind,1],
-                            y=predict(lo),
-                            type = "l",
-                            main = "New Impact Curve",
-                            xlab = "log-returns (rtm1)",
-                            ylab = "volatilities (Vt)",
-                            ...  = ...), x[-(1:10)])
-    do.call("plot", tmp)
   }
   
   par(mfrow = c(1, 1))
