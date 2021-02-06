@@ -9,12 +9,14 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
   
   if ( (!is.numeric(N)) || (!is.numeric(K)) ) {
     stop("MDSVroll(): input N and K must be numeric!")
+  }else if(!(N%%1==0) || !(K%%1==0)){
+    stop("MDSVfit(): input N and K must be integer!")
   }
   
   if(!is.numeric(ModelType)) {
     stop("MDSVroll(): input ModelType must be numeric!")
-  }else if((ModelType>2) || (ModelType<0)){
-    stop("MDSVroll(): input ModelType must be 0, 1 or 2!")
+  }else if(!(ModelType %in% c(0,1,2))){
+    stop("MDSVfit(): input ModelType must be 0, 1 or 2!")
   }
   
   if ( (!is.numeric(data)) || (!is.matrix(data))  ) {

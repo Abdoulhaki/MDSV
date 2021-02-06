@@ -1,15 +1,92 @@
+#' @title MDSV forecasting via Bootstrap
+#' @description Method for forecasting volatility using the MDSV model on log-retruns and realized variances (uniquely or jointly).
+#' @param fit An object of \link[base]{class} `MDSVfilter` obtain after fitting the model using \code{MDSVfilter}.
+#' @param n.ahead An integer designing the forecast horizon.
+#' @param n.bootpred An integer designing the number of simulation based re-fits used to generate the parameter distribution (i.e the parameter uncertainty). Not relevant for one horizon forecast or for non-leverage type model.
+#' @param rseed An integer use to initialize the random number generator for the resampling with replacement method (if not supplied take randomly).
+#' 
+#' @return A list consisting of:
+#' \itemize{
+#'     \item{ModelType}{type of model to be fitted.}
+#'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
+#'     \item{N}{number of components for the MDSV process.}
+#'     \item{K}{number of states of each MDSV process component.}
+#'     \item{estimates}{estimated parameters.}
+#'     \item{LogLikelihood}{log-likelihood of the model on the data.}
+#'     \item{AIC}{Akaike Information Criteria of the model on the data.}
+#'     \item{BIC}{Bayesian Information Criteria of the model on the data.}
+#'     \item{data}{data use for the fitting.}
+#'     \item{dates}{vector or names of data designing the dates.}
+#'     \item{n.ahead}{integer designing the forecast horizon.}
+#'     \item{n.bootpred}{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
+#'     \item{rt_sim}{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rt2}{vector of mean by column of the square of rt_sim.}
+#'     \item{rvt_sim}{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rvt}{vector of mean by column of rvt_sim.}
+#' }
+#' 
+#' @details 
+#' The MDSVboot perform the forecasting of the model a different horizon. The forecasting is based on a close form where the estimation does not
+#' involve leverage effect (see Hamilton, 1989. chapter 22 for hidden markov model forecasting). But to take into account the leverage effect,
+#' the forecasting is perform by a bootstrap analysis. The innovations are bootstrapped using a standard normal distribution. This process 
+#' is performed in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
+#' (see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect. 
+#'
+#' The \link[base]{class} of the output of this function is \code{MDSVboot}. This class has a \link[base]{summary} and 
+#' \link[base]{print} \link[utils]{methods} to summarize and print the results. See 
+#' \code{\link{summary.MDSVboot}}, \code{\link{print.MDSVboot}} and \code{\link{plot.MDSVboot}} for more details.
+#' 
+#' @references  
+#' Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
+#' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
+#' @examples 
+#' \dontrun{
+#' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
+#' data      <- data(sp500)  # Data loading
+#' N         <- 2            # Number of components
+#' K         <- 3            # Number of states
+#' ModelType <- 0            # Univariate log-returns
+#' LEVIER    <- FALSE        # No leverage effect
+#' 
+#' # Model estimation
+#' out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' # Model forecasting (no bootstrapp is need as no leverage)
+#' para      <-out_fit$estimates # parameter
+#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, rseed = 125)
+#' # Summary
+#' summary(out)
+#' 
+#' 
+#' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
+#' data      <- data(nasdaq)  # Data loading
+#' N         <- 3             # Number of components
+#' K         <- 3             # Number of states
+#' ModelType <- 2             # Joint log-returns and realized variances
+#' LEVIER    <- TRUE          # No leverage effect
+#' 
+# Model estimation
+#' out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' # Model bootstrap forecasting
+#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootstrap = 10000, rseed = 349)
+#' # Summary
+#' summary(out)
+#' 
+#' }
+#' 
 #' @export
 #' @importFrom mhsmm sim.mc
-MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rtp1=0,rseed=NA){
+MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
   stopifnot(class(fit) == "MDSVfit")
   
   if ( (!is.numeric(n.ahead)) || (!is.numeric(n.bootpred)) ) {
     stop("MDSVboot(): inputs must be numeric!")
+  }else if(!(n.ahead%%1==0) || !(n.bootpred%%1==0)){
+    stop("MDSVfit(): input n.ahead and n.bootpred must be integer!")
   }
-  if (!is.numeric(rtp1)) {
-    print("MDSVboot() WARNING: input rtp1 must be numeric! rtp1 set to 0")
-    rtp1 <- 0;
-  }
+  
   if ((!is.numeric(rseed)) || is.na(rseed)) {
     print("MDSVboot() WARNING: input rseed must be numeric! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
@@ -33,11 +110,11 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rtp1=0,rseed=NA){
     dates<- 1:T
   }
   
-  out<-c(ModelType = ModelType, fit[-1], list(dates      = dates,
-                                              n.ahead    = n.ahead,
-                                              n.bootpred = n.bootpred))
+  out<-c(fit, list(dates      = dates,
+                   n.ahead    = n.ahead,
+                   n.bootpred = n.bootpred))
   
-  l<-logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=T,r=rtp1)
+  l<-logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=T)
   
   #simulation
   set.seed(rseed)
@@ -108,10 +185,38 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rtp1=0,rseed=NA){
   return(out)
 }
 
-
+#' @title Summarize and print MDSV bootstrap forecasting
+#' @description Summary and print methods for the class `MDSVboot` as returned by the function \link{MDSVboot}.
+#' @param object An object of class `MDSVboot`, output of the function \code{\link{MDSVboot}}.
+#' @param x An object of class `summary.MDSVboot`, output of the function \code{\link{summary.MDSVboot}}
+#' or class `MDSVboot` of the function \code{\link{MDSVboot}}.
+#' @param ... further arguments passed to or from other methods.
+#' 
+#' @return A list consisting of:.
+#' \itemize{
+#'     \item{ModelType}{type of model to be fitted.}
+#'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
+#'     \item{N}{number of components for the MDSV process.}
+#'     \item{K}{number of states of each MDSV process component.}
+#'     \item{estimates}{estimated parameters.}
+#'     \item{LogLikelihood}{log-likelihood of the model on the data.}
+#'     \item{AIC}{Akaike Information Criteria of the model on the data.}
+#'     \item{BIC}{Bayesian Information Criteria of the model on the data.}
+#'     \item{data}{data use for the fitting.}
+#'     \item{dates}{vector or names of data designing the dates.}
+#'     \item{n.ahead}{integer designing the forecast horizon.}
+#'     \item{n.bootpred}{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
+#'     \item{rt_sim}{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rt2}{vector of mean by column of the square of rt_sim.}
+#'     \item{rvt_sim}{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rvt}{vector of mean by column of rvt_sim.}
+#' }
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
 #' @export
 
-"summary.MDSVboot" <- function(object, plot.type=NULL, ...){
+"summary.MDSVboot" <- function(object, ...){
   stopifnot(class(object) == "MDSVboot")
   
   out<-c(object,...)
@@ -149,8 +254,13 @@ f.present <- function(X,thr=100){
   cat(paste0("Date (T[0]) : ", x$dates[length(x$dates)],"\n\n"))
   
   n.ahead <- x$n.ahead
+  
+  if(x$ModelType == "Univariate log-return")                   ModelType <- 0
+  if(x$ModelType == "Univariate realized variances")           ModelType <- 1
+  if(x$ModelType == "Joint log-return and realized variances") ModelType <- 2
+  
   if(x$LEVIER){
-    if(!(x$ModelType == 1)){
+    if(!(ModelType == 1)){
       rt_sim <- f.present(X = x$rt_sim, thr = n.ahead)
       rownames(rt_sim) <- paste("t", 1:n.ahead, sep="+")
       
@@ -158,7 +268,7 @@ f.present <- function(X,thr=100){
       print(head(round(rt_sim,6), min(n.ahead, 10)))
       if(n.ahead>10)  cat("......................... \n")
       
-      if(x$ModelType == 0){
+      if(ModelType == 0){
         rt2_sim <- f.present(X = (x$rt_sim)^2, thr = n.ahead)
         rownames(rt2_sim) <- paste("t", 1:n.ahead, sep="+")
         
@@ -168,11 +278,11 @@ f.present <- function(X,thr=100){
       }
     }
     
-    if(!(x$ModelType == 0)){
+    if(!(ModelType == 0)){
       rvt_sim <- f.present(X = x$rvt_sim, thr = n.ahead)
       rownames(rvt_sim) <- paste("t", 1:n.ahead, sep="+")
       
-      if(x$ModelType == 2) cat("\n")
+      if(ModelType == 2) cat("\n")
       cat("Realized Variances (summary) : \n")
       print(head(round(rvt_sim,6), min(n.ahead, 10)))
       if(n.ahead>0)  cat("......................... \n")

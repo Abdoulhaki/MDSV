@@ -30,25 +30,25 @@ The MDSVfilter help to simply filter a set of data with a predefined set of para
 likelihood calculation is performed in \code{C++} through the \pkg{Rcpp} package. 
 According to Augustyniak et al., (2021), the para consist on a vector of :
 \itemize{
-    \item{\eqn{\omega}}{probability of success of the stationnary distribution of the Markov chain. (\eqn{0<\omega<1}).}
-    \item{\eqn{a}}{highest persistance of the component of the MDSV process. (\eqn{0<a<1}).}
-    \item{\eqn{b}}{decroissance rate of the persistances. (\eqn{1<b}).}
-    \item{\eqn{\sigma}}{unconditionnal variance of the MDSV process.}
-    \item{\eqn{\nu_0}}{states defined parameter. (\eqn{0<\nu_0<1}).}
-    \item{\eqn{\gamma}}{parameter of the realized variances innovation. This parameter is required only if \eqn{ModelType=1} or \eqn{ModelType = 2}. (\eqn{0<\gamma}).}
-    \item{\eqn{\xi}}{parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
-    \item{\eqn{\varphi}}{parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
-    \item{\eqn{\delta1}}{parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
-    \item{\eqn{\delta2}}{parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
-    \item{\eqn{l_1}}{Leverage effect parameter. This parameter is required only if \eqn{LEVIER = TRUE}. (\eqn{0<l_1}).}
-    \item{\eqn{\theta_l}}{Leverage effect parameter. This parameter is required only if \eqn{LEVIER = TRUE}. (\eqn{0<\theta_l<1}).}
+    \item{\eqn{\omega}}{ probability of success of the stationnary distribution of the Markov chain. (\eqn{0 < \omega < 1}).}
+    \item{\eqn{a}}{ highest persistance of the component of the MDSV process. (\eqn{0 < a < 1}).}
+    \item{\eqn{b}}{ decroissance rate of the persistances. (\eqn{1 < b}).}
+    \item{\eqn{\sigma^2}}{ unconditionnal variance of the MDSV process.}
+    \item{\eqn{\nu_0}}{ states defined parameter. (\eqn{0 < \nu_0 < 1}).}
+    \item{\eqn{\gamma}}{ parameter of the realized variances innovation. This parameter is required only if \eqn{ModelType = 1} or \eqn{ModelType = 2}. (\eqn{0 < \gamma}).}
+    \item{\eqn{\xi}}{ parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
+    \item{\eqn{\phi}}{ parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
+    \item{\eqn{\delta1}}{ parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
+    \item{\eqn{\delta2}}{ parameter of realized variances equation in joint estimation. This parameter is required only if \eqn{ModelType = 2}.}
+    \item{\eqn{l}}{ leverage effect parameter. This parameter is required only if \eqn{LEVIER = TRUE}. (\eqn{0 < l}).}
+    \item{\eqn{\theta}}{ leverage effect parameter. This parameter is required only if \eqn{LEVIER = TRUE}. (\eqn{0 < \theta < 1}).}
 }
 The leverage effect is taken into account according to the FHMV model (see Augustyniak et al., 2019). While filtering an
 univariate realized variances data, log-returns are required to add leverage effect. 
 AIC and BIC are computed using the formulas : 
 \itemize{
-\item{AIC : }{\eqn{L - k} }
-\item{BIC : }{\eqn{L - (k/2) log(n)}}
+\item{AIC : }{\eqn{L - k}}
+\item{BIC : }{\eqn{L - (k/2)*log(n)}}
 }
 where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
 The \link[base]{class} of the output of this function is \code{MDSVfilter}. This class has a \link[base]{summary}, 
@@ -58,34 +58,34 @@ The \link[base]{class} of the output of this function is \code{MDSVfilter}. This
 \examples{
 \dontrun{
 # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-data     <- data(sp500)  # Data loading
+data      <- data(sp500)  # Data loading
 N         <- 2           # Number of components
 K         <- 3           # Number of states
 ModelType <- 0           # Univariate log-returns
 LEVIER    <- FALSE       # No leverage effect
 
 # Model estimation
-out_fit   <- MDSVfit(K=K,N=N,data=donne,ModelType = ModelType,LEVIER=LEVIER)
+out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
 # Model filtering
 para      <-out_fit$estimates # parameter
 out_filter<- MDSVfilter(K = K, N = N, data = donne, para = para, ModelType = ModelType, LEVIER = LEVIER)
 # Summary
 summary(out_filter)
 # Plot
-plot(out)
+plot(out_filter)
 
 
-# MDSV(N=3,K=3) with leverage on joint log-returns and realized variances S&P500
-data     <- data(sp500)  # Data loading
-N         <- 3           # Number of components
-K         <- 3           # Number of states
-ModelType <- 2           # Joint log-returns and realized variances
-LEVIER    <- TRUE        # No leverage effect
+# MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
+data      <- data(nasdaq)  # Data loading
+N         <- 3             # Number of components
+K         <- 3             # Number of states
+ModelType <- 2             # Joint log-returns and realized variances
+LEVIER    <- TRUE          # No leverage effect
 
 para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72, 
               xi = -0.5, varphi = 0.93, delta1 = 0.93, delta2 = 0.04, shape = 2.10
               l = 0.78, theta = 0.876)
-# Model estimation
+# Model filtering
 out       <- MDSVfilter(K = K, N = N,data = donne, para = para, ModelType = ModelType, LEVIER = LEVIER)
 # Summary
 summary(out)

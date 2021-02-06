@@ -26,3 +26,6 @@ or class `MDSVfilter` of the function \code{\link{MDSVfilter}}.}
 \description{
 Summary and print methods for the class `MDSVfilter` as returned by the function \link{MDSVfilter}.
 }
+\seealso{
+For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+}

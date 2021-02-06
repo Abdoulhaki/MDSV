@@ -21,6 +21,7 @@ MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
 }
 \value{
 A list consisting of:
+\itemize{
     \item{ModelType}{type of model to be fitted.}
     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
     \item{N}{number of components for the MDSV process.}
@@ -30,6 +31,7 @@ A list consisting of:
     \item{AIC}{Akaike Information Criteria of the model on the data.}
     \item{BIC}{Bayesian Information Criteria of the model on the data.}
     \item{data}{data use for the fitting.}
+}
 }
 \description{
 Method for fitting the MDSV model on log-retruns and realized variances (uniquely or jointly).
@@ -42,8 +44,8 @@ The leverage effect is taken into account according to the FHMV model (see Augus
 univariate realized variances data, log-returns are required to add leverage effect.
 AIC and BIC are computed using the formulas : 
 \itemize{
-\item{AIC : }{\eqn{L - k} }
-\item{BIC : }{\eqn{L - (k/2) log(n)}}
+\item{AIC : }{\eqn{L - k}}
+\item{BIC : }{\eqn{L - (k/2)*log(n)}}
 }
 where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
 The \link[base]{class} of the output of this function is \code{MDSVfit}. This class has a \link[base]{summary}, 
@@ -53,7 +55,7 @@ The \link[base]{class} of the output of this function is \code{MDSVfit}. This cl
 \examples{
 \dontrun{
 # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-data     <- data(sp500)  # Data loading
+data      <- data(sp500)  # Data loading
 N         <- 2           # Number of components
 K         <- 3           # Number of states
 ModelType <- 0           # Univariate log-returns
@@ -67,12 +69,12 @@ summary(out)
 plot(out,"both")
 
 
-# MDSV(N=3,K=3) with leverage on joint log-returns and realized variances S&P500
-data     <- data(sp500)  # Data loading
-N         <- 3           # Number of components
-K         <- 3           # Number of states
-ModelType <- 2           # Joint log-returns and realized variances
-LEVIER    <- TRUE        # No leverage effect
+# MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
+data      <- data(nasdaq)  # Data loading
+N         <- 3             # Number of components
+K         <- 3             # Number of states
+ModelType <- 2             # Joint log-returns and realized variances
+LEVIER    <- TRUE          # No leverage effect
 
 # Model estimation
 out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)

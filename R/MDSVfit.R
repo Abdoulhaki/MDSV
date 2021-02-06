@@ -6,7 +6,9 @@
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
 #' @param LEVIER if `TRUE`, estime the MDSV model with leverage.
 #' @param ... further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
+#' 
 #' @return A list consisting of:
+#' \itemize{
 #'     \item{ModelType}{type of model to be fitted.}
 #'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
 #'     \item{N}{number of components for the MDSV process.}
@@ -16,6 +18,7 @@
 #'     \item{AIC}{Akaike Information Criteria of the model on the data.}
 #'     \item{BIC}{Bayesian Information Criteria of the model on the data.}
 #'     \item{data}{data use for the fitting.}
+#' }
 #' 
 #' @details 
 #' The MDSV optimization routine set of feasible starting points which are used to initiate the MDSV recursion. The 
@@ -25,8 +28,8 @@
 #' univariate realized variances data, log-returns are required to add leverage effect.
 #' AIC and BIC are computed using the formulas : 
 #' \itemize{
-#' \item{AIC : }{\eqn{L - k} }
-#' \item{BIC : }{\eqn{L - (k/2) log(n)}}
+#' \item{AIC : }{\eqn{L - k}}
+#' \item{BIC : }{\eqn{L - (k/2)*log(n)}}
 #' }
 #' where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
 #' The \link[base]{class} of the output of this function is \code{MDSVfit}. This class has a \link[base]{summary}, 
@@ -38,10 +41,11 @@
 #' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
 #' 
 #' @seealso For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
 #' @examples 
 #' \dontrun{
 #' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-#' data     <- data(sp500)  # Data loading
+#' data      <- data(sp500)  # Data loading
 #' N         <- 2           # Number of components
 #' K         <- 3           # Number of states
 #' ModelType <- 0           # Univariate log-returns
@@ -55,12 +59,12 @@
 #' plot(out,"both")
 #' 
 #' 
-#' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances S&P500
-#' data     <- data(sp500)  # Data loading
-#' N         <- 3           # Number of components
-#' K         <- 3           # Number of states
-#' ModelType <- 2           # Joint log-returns and realized variances
-#' LEVIER    <- TRUE        # No leverage effect
+#' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
+#' data      <- data(nasdaq)  # Data loading
+#' N         <- 3             # Number of components
+#' K         <- 3             # Number of states
+#' ModelType <- 2             # Joint log-returns and realized variances
+#' LEVIER    <- TRUE          # No leverage effect
 #' 
 #' # Model estimation
 #' out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
@@ -73,16 +77,16 @@
 #' @export
 #' @importFrom Rsolnp solnp 
 MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
-
-  
   
   if ( (!is.numeric(N)) || (!is.numeric(K)) ) {
     stop("MDSVfit(): input N and K must be numeric!")
+  }else if(!(N%%1==0) || !(K%%1==0)){
+    stop("MDSVfit(): input N and K must be integer!")
   }
   
   if(!is.numeric(ModelType)) {
     stop("MDSVfit(): input ModelType must be numeric!")
-  }else if((ModelType>2) || (ModelType<0)){
+  }else if(!(ModelType %in% c(0,1,2))){
     stop("MDSVfit(): input ModelType must be 0, 1 or 2!")
   }
   
@@ -177,7 +181,9 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #' @param plot.type A character designing the type of plot. `dis` for the stationnary distribution of the volatilities,
 #'  `nic` for the New Impact Curve (see. Engle and Ng, 1993).
 #' @param ... further arguments passed to or from other methods.
+#' 
 #' @return A list consisting of:
+#' \itemize{
 #'     \item{ModelType}{type of model to be fitted.}
 #'     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
 #'     \item{N}{number of components for the MDSV process.}
@@ -188,10 +194,13 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #'     \item{BIC}{Bayesian Information Criteria of the model on the data.}
 #'     \item{data}{data use for the fitting.}
 #'     \item{...}{further arguments passed to the function.}
+#' }
 #'
 #' @details 
 #' `dis` as argument `plot.type` lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
 #' effect is not took into account for that plot.
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 #' 
 #' @references 
 #' Engle, R. F., & Ng, V. K. (1993). Measuring and testing the impact of news on volatility. 

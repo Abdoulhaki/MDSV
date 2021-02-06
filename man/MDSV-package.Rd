@@ -14,7 +14,7 @@ To make the computations faster \pkg{MDSV} uses \code{C++} through the \pkg{Rcpp
 Calvet, L. E. and Fisher, A. J. (2004). How to forecast long-run volatility: Regime switching and the estimation of multifractal processes. 
 \emph{Journal of Financial Econometrics}, 2(1):49-83. \url{https://doi.org/10.1093/jjfinec/nbh003}
 
-Eddelbuettel, D., Fran攼㸷ois, R., Allaire, J., Ushey, K., Kou, Q., Russel, N., ... & Bates, D., (2011).
+Eddelbuettel, D., Fran?ois, R., Allaire, J., Ushey, K., Kou, Q., Russel, N., ... & Bates, D., (2011).
 \pkg{Rcpp}: Seamless \R and \code{C++} integration. \emph{Journal of Statistical Software}, 40(8), 1-18.
 \url{https://www.jstatsoft.org/v40/i08/}
 
@@ -28,7 +28,7 @@ Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility 
 Augustyniak, M., Dufays, A., & Maoude, K.H.A. (2021). Multifractal Discrete Stochastic Volatility.
 }
 \seealso{
-For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting\code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 }
 \author{
 \strong{Maintainer}: Kassimou Abdoul Haki Maoude \email{abdoulhaki.maoude@aiesec.net}

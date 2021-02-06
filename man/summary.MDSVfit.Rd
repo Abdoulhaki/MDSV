@@ -31,6 +31,7 @@ class `MDSVfit` of the function \code{\link{MDSVfit}} or `plot.MDSVfit` of the f
 }
 \value{
 A list consisting of:
+\itemize{
     \item{ModelType}{type of model to be fitted.}
     \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
     \item{N}{number of components for the MDSV process.}
@@ -42,6 +43,7 @@ A list consisting of:
     \item{data}{data use for the fitting.}
     \item{...}{further arguments passed to the function.}
 }
+}
 \description{
 Summary, print and plot methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
 }
@@ -52,4 +54,7 @@ effect is not took into account for that plot.
 \references{
 Engle, R. F., & Ng, V. K. (1993). Measuring and testing the impact of news on volatility. 
 \emph{The journal of finance}, 48(5), 1749-1778. \url{ https://doi.org/10.1111/j.1540-6261.1993.tb05127.x}
+}
+\seealso{
+For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 }

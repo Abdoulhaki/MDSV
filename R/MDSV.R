@@ -3,12 +3,12 @@
 #' This MDSV model is proposed as a generalization of other high dimensional hidden markov models such as, MSM of Calvet and Fisher (2004), CDRS of Fleming and Kirby (2013), DSARV of Cordis and Kirby (2014), FHMV of Augustyniak et al. (2019).
 #' To make the computations faster \pkg{MDSV} uses \code{C++} through the \pkg{Rcpp} package (Eddelbuettel et al., 2011). 
 #'
-#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting\code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 #' 
 #' @references 
 #' Calvet, L. E. and Fisher, A. J. (2004). How to forecast long-run volatility: Regime switching and the estimation of multifractal processes. 
 #' \emph{Journal of Financial Econometrics}, 2(1):49-83. \url{https://doi.org/10.1093/jjfinec/nbh003}
-#' @references Eddelbuettel, D., François, R., Allaire, J., Ushey, K., Kou, Q., Russel, N., ... & Bates, D., (2011).
+#' @references Eddelbuettel, D., Fran?ois, R., Allaire, J., Ushey, K., Kou, Q., Russel, N., ... & Bates, D., (2011).
 #' \pkg{Rcpp}: Seamless \R and \code{C++} integration. \emph{Journal of Statistical Software}, 40(8), 1-18.
 #' \url{https://www.jstatsoft.org/v40/i08/}
 #' @references 
