@@ -22,15 +22,15 @@ MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
 \value{
 A list consisting of:
 \itemize{
-    \item{ModelType}{type of model to be fitted.}
-    \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
-    \item{N}{number of components for the MDSV process.}
-    \item{K}{number of states of each MDSV process component.}
-    \item{estimates}{estimated parameters.}
-    \item{LogLikelihood}{log-likelihood of the model on the data.}
-    \item{AIC}{Akaike Information Criteria of the model on the data.}
-    \item{BIC}{Bayesian Information Criteria of the model on the data.}
-    \item{data}{data use for the fitting.}
+    \item{ModelType : }{type of model to be fitted.}
+    \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
+    \item{N : }{number of components for the MDSV process.}
+    \item{K : }{number of states of each MDSV process component.}
+    \item{estimates : }{estimated parameters.}
+    \item{LogLikelihood : }{log-likelihood of the model on the data.}
+    \item{AIC : }{Akaike Information Criteria of the model on the data.}
+    \item{BIC : }{Bayesian Information Criteria of the model on the data.}
+    \item{data : }{data use for the fitting.}
 }
 }
 \description{

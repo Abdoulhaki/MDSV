@@ -7,33 +7,33 @@
 MDSVboot(fit, n.ahead = 100, n.bootpred = 500, rseed = NA)
 }
 \arguments{
-\item{fit}{An object of \link[base]{class} `MDSVfilter` obtain after fitting the model using \code{MDSVfilter}.}
+\item{fit}{An object of \link[base]{class} \code{MDSVfilter} obtain after fitting the model using \code{\link{MDSVfilter}}.}
 
 \item{n.ahead}{An integer designing the forecast horizon.}
 
-\item{n.bootpred}{An integer designing the number of simulation based re-fits used to generate the parameter distribution (i.e the parameter uncertainty). Not relevant for one horizon forecast or for non-leverage type model.}
+\item{n.bootpred}{An integer designing the number of simulation based re-fits the model. Not relevant for one horizon forecast or for non-leverage type model.}
 
 \item{rseed}{An integer use to initialize the random number generator for the resampling with replacement method (if not supplied take randomly).}
 }
 \value{
 A list consisting of:
 \itemize{
-    \item{ModelType}{type of model to be fitted.}
-    \item{LEVIER}{wheter the fit take the leverage effect into account or not.}
-    \item{N}{number of components for the MDSV process.}
-    \item{K}{number of states of each MDSV process component.}
-    \item{estimates}{estimated parameters.}
-    \item{LogLikelihood}{log-likelihood of the model on the data.}
-    \item{AIC}{Akaike Information Criteria of the model on the data.}
-    \item{BIC}{Bayesian Information Criteria of the model on the data.}
-    \item{data}{data use for the fitting.}
-    \item{dates}{vector or names of data designing the dates.}
-    \item{n.ahead}{integer designing the forecast horizon.}
-    \item{n.bootpred}{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
-    \item{rt_sim}{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
-    \item{rt2}{vector of mean by column of the square of rt_sim.}
-    \item{rvt_sim}{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
-    \item{rvt}{vector of mean by column of rvt_sim.}
+    \item{ModelType : }{type of model to be fitted.}
+    \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
+    \item{N : }{number of components for the MDSV process.}
+    \item{K : }{number of states of each MDSV process component.}
+    \item{estimates : }{estimated parameters.}
+    \item{LogLikelihood : }{log-likelihood of the model on the data.}
+    \item{AIC : }{Akaike Information Criteria of the model on the data.}
+    \item{BIC : }{Bayesian Information Criteria of the model on the data.}
+    \item{data : }{data use for the fitting.}
+    \item{dates : }{vector or names of data designing the dates.}
+    \item{n.ahead : }{integer designing the forecast horizon.}
+    \item{n.bootpred : }{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
+    \item{rt_sim : }{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
+    \item{rt2 : }{vector of mean by column of the square of rt_sim.}
+    \item{rvt_sim : }{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
+    \item{rvt : }{vector of mean by column of rvt_sim.}
 }
 }
 \description{

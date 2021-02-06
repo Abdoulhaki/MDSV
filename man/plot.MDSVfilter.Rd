@@ -18,11 +18,11 @@ or class `plot.MDSVfilter` of the function \code{\link{plot.MDSVfilter}}.}
 \value{
 A list consisting of:
 \itemize{
-    \item{V_t}{smoothed volatilities taking leverage effect into accound when existing.}
-    \item{data}{data use for the filtering.}
-    \item{dates}{vector or names of data designing the dates.}
-    \item{ModelType}{type of model to be filtered.}
-    \item{...}{further arguments passed to the function.}
+    \item{V_t : }{smoothed volatilities taking leverage effect into accound when existing.}
+    \item{data : }{data use for the filtering.}
+    \item{dates : }{vector or names of data designing the dates.}
+    \item{ModelType : }{type of model to be filtered.}
+    \item{... : }{further arguments passed to the function.}
 }
 }
 \description{
