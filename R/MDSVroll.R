@@ -8,88 +8,103 @@
 #' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
 #' @param n.ahead An integer designing the forecast horizon.
 #' @param n.bootpred An integer designing the number of simulation based re-fits the model. Not relevant for one horizon forecast or for non-leverage type model.
-#' @param forecast.length
-#' @param refit.every
-#' @param refit.window
-#' @param window.size
-#' @param calculate.VaR
-#' @param VaR.alpha
-#' @param cluster
+#' @param forecast.length An integer designing the length of the total forecast for which out of sample data from the dataset will be used for testing.
+#' @param refit.every Determines every how many periods the model is re-estimated.
+#' @param refit.window Whether the refit is done on an expanding window including all the previous data or a moving window where all previous 
+#' data is used for the first estimation and then moved by a length equal to refit.every (unless the window.size option is used instead).
+#' @param window.size If not NULL, determines the size of the moving window in the rolling estimation, which also determines the first point used.
+#' @param calculate.VaR Whether to calculate forecast Value at Risk during the estimation.
+#' @param VaR.alpha The Value at Risk tail level to calculate.
+#' @param cluster A cluster object created by calling makeCluster from the parallel package. If it is not NULL, then this will be used for parallel estimation of the refits (remember to stop the cluster on completion).
 #' @param rseed An integer use to initialize the random number generator for the resampling with replacement method (if not supplied take randomly).
-#' @param ... further arguments passed to or from other methods.
+#' @param ... Further arguments passed to or from other methods.
 #' 
 #' @return A list consisting of:
-#' \describe{
-#'     \item{ModelType : }{type of model to be fitted.}
-#'     \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-#'     \item{N : }{number of components for the MDSV process.}
-#'     \item{K : }{number of states of each MDSV process component.}
-#'     \item{estimates : }{estimated parameters.}
-#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
-#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
-#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-#'     \item{data : }{data use for the fitting.}
-#'     \item{dates : }{vector or names of data designing the dates.}
-#'     \item{n.ahead : }{integer designing the forecast horizon.}
-#'     \item{n.bootpred : }{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
-#'     \item{rt_sim : }{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
-#'     \item{rt2 : }{vector of mean by column of the square of rt_sim.}
-#'     \item{rvt_sim : }{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
-#'     \item{rvt : }{vector of mean by column of rvt_sim.}
+#' \itemize{
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item ModelType : type of models fitted.
+#'     \item LEVIER : wheter the fit take the leverage effect into account or not.
+#'     \item n.ahead : integer designing the forecast horizon.
+#'     \item forecast.length : length of the total forecast for which out of sample data from the dataset will be used for testing.
+#'     \item refit.every : Determines every how many periods the model is re-estimated.
+#'     \item refit.window : Whether the refit is done on an expanding window including all the previous data or a moving window where all previous 
+#' data is used for the first estimation and then moved by a length equal to refit.every (unless the window.size option is used instead).
+#'     \item window.size : If not NULL, determines the size of the moving window in the rolling estimation, which also determines the first point used.
+#'     \item calculate.VaR : Whether to calculate forecast Value at Risk during the estimation.
+#'     \item VaR.alpha : The Value at Risk tail level to calculate.
+#'     \item cluster : A cluster object created by calling makeCluster from the parallel package.
+#'     \item data : data use for the fitting.
+#'     \item dates : vector or names of data designing the dates.
+#'     \item estimates : matrix of all the parameters estimates at each date.
+#'     \item prevision : matrix of all prevision made a each date.
 #' }
 #' 
 #' @details 
-#' The MDSVboot perform the forecasting of the model a different horizon. The forecasting is based on a close form where the estimation does not
-#' involve leverage effect (see Hamilton, 1989. chapter 22 for hidden markov model forecasting). But to take into account the leverage effect,
-#' the forecasting is perform by a bootstrap analysis. The innovations are bootstrapped using a standard normal distribution. This process 
-#' is performed in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
-#' (see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect. 
-#'
-#' The \link[base]{class} of the output of this function is \code{MDSVboot}. This class has a \link[base]{summary} and 
-#' \link[base]{print} \link[utils]{methods} to summarize and print the results. See 
-#' \code{\link{summary.MDSVboot}}, \code{\link{print.MDSVboot}} and \code{\link{plot.MDSVboot}} for more details.
+#' This is a wrapper function for creating rolling estimates and volatility forecasts using MDSV models, and optionally calculating the Value at Risk 
+#' at specified levels. The argument refit.every determines every how many periods the model is re-estimated. Given a dataset of length n, 
+#' it is possible to set how many periods from the end to use for out of sample forecasting (using the forecast.length option). 
+#' For rolling 1-ahead forecasts and forecasts without leverage effect, no bootstrap in done and then n.bootpred is not required.
+#' However, the Value-at-Risk baskesting is done for 1-ahead forecasts. A very important part of the function is performed 
+#' in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
+#' (see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect.
+#' When cluster is not NULL, the estimations and forecasting are perform with parallel functionalilty which  is entirely based 
+#' on the \pkg{parallel} package, and it is up to the user to pass a cluster object, and then stop it once the routine is completed.
+#' The \link[base]{class} of the output of this function is \code{MDSVroll}. This class has a \link[base]{summary}, \link[base]{print} and 
+#' \link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
+#' \code{\link{summary.MDSVroll}}, \code{\link{print.MDSVroll}} and \code{\link{plot.MDSVroll}} for more details.
 #' 
 #' @references  
 #' Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
 #' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
+#' @references 
+#' JamesHamilton: D.(1994), time series analysis, 1994.
 #' 
-#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and bootstrap forecasting \code{\link{MDSVboot}}.
 #' 
 #' @examples 
 #' \dontrun{
 #' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
 #' data(sp500)         # Data loading
-#' N         <- 2      # Number of components
-#' K         <- 3      # Number of states
-#' ModelType <- 0      # Univariate log-returns
-#' LEVIER    <- FALSE  # No leverage effect
 #' 
-#' # Model estimation
-#' out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
-#' # Model forecasting (no bootstrapp is need as no leverage)
-#' para      <-out_fit$estimates # parameter
-#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, rseed = 125)
+#' N                <- 2            # Number of components
+#' K                <- 3            # Number of states
+#' ModelType        <- 0            # Univariate log-returns
+#' LEVIER           <- FALSE        # No leverage effect
+#' n.ahead          <- 100          # Forecast horizon
+#' forecast.length  <- 756          # rolling forecast length
+#' refit.every      <- 63           # Period to re-estimate the model
+#' refit.window     <- "recursive"  # No leverage effect
+#' calculate.VaR    <- TRUE
+#' VaR.alpha        <- c(0.01, 0.05, 0.1)
+#' cl               <- parallel::makeCluster(parallel::detectCores()[1]-1)
+#' rseed            <- 125
+#' 
+#' # rolling forecasts
+#' out<-MDSVroll(N=N, K=K, data=data, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+#'             forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
+#'             calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
+#' parallel::stopCluster(cl)
 #' # Summary
-#' summary(out)
+#' summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
+#' # plot
+#' plot(out, plot.type=c("VaR","sigma","dens"))
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
 #' data(nasdaq)       # Data loading
-#' N         <- 3     # Number of components
-#' K         <- 3     # Number of states
-#' ModelType <- 2     # Joint log-returns and realized variances
-#' LEVIER    <- TRUE  # No leverage effect
 #' 
-# Model estimation
-#' out_fit   <- MDSVfit(K = K, N = N, data = nasdaq, ModelType = ModelType, LEVIER = LEVIER)
-#' # Model bootstrap forecasting
-#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootstrap = 10000, rseed = 349)
+#' # rolling forecasts
+#' out<-MDSVroll(N=3, K=3, data=nasdaq, ModelType=2, LEVIER=TRUE, n.ahead = 10, forecast.length = 100, 
+#'             refit.every = 25, refit.window = "recursive", window.size = 1000, 
+#'             calculate.VaR = TRUE, VaR.alpha = c(0.01,0.05), cluster = NULL, rseed = NA)
 #' # Summary
-#' summary(out)
+#' summary(out, VaR.test=TRUE, Loss.horizon = c(1,2,4,9), Loss.window = 50)
 #' 
 #' }
 #' 
 #' @export
+#' @import Rcpp
 #' @importFrom mhsmm sim.mc
 #' @importFrom Rsolnp solnp
 #' @importFrom foreach foreach %dopar%
@@ -620,6 +635,52 @@ g<-function(vector){
   return(Sortie)
 }
 
+
+#' @title Summarize and print MDSV Rolling estimates, volatility forecast and backtesting
+#' @description Summary and print methods for the class \link{MDSVroll} as returned by the function \code{\link{MDSVroll}}.
+#' @param object An object of class \link{MDSVroll}, output of the function \code{\link{MDSVroll}}.
+#' @param x An object of class \link{summary.MDSVroll}, output of the function \code{\link{summary.MDSVroll}}
+#' or class \link{MDSVroll} of the function \code{\link{MDSVroll}}.
+#' @param VaR.test Whether to perform Value at Risk forecast backtesting.
+#' @param Loss.horizon Horizon to summary the forecasts (cummulative and marginal).
+#' @param Loss.window Window on which the forecasts are summarized.
+#' @param ... Further arguments passed to or from other methods.
+#' 
+#' @return A list consisting of:
+#' \itemize{
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item ModelType : type of models fitted.
+#'     \item LEVIER : wheter the fit take the leverage effect into account or not.
+#'     \item n.ahead : integer designing the forecast horizon.
+#'     \item forecast.length : length of the total forecast for which out of sample data from the dataset will be used for testing.
+#'     \item refit.every : Determines every how many periods the model is re-estimated.
+#'     \item refit.window : Whether the refit is done on an expanding window including all the previous data or a moving window where all previous 
+#' data is used for the first estimation and then moved by a length equal to refit.every (unless the window.size option is used instead).
+#'     \item window.size : If not NULL, determines the size of the moving window in the rolling estimation, which also determines the first point used.
+#'     \item calculate.VaR : Whether to calculate forecast Value at Risk during the estimation.
+#'     \item VaR.alpha : The Value at Risk tail level to calculate.
+#'     \item cluster : A cluster object created by calling makeCluster from the parallel package.
+#'     \item data : data use for the fitting.
+#'     \item dates : vector or names of data designing the dates.
+#'     \item estimates : matrix of all the parameters estimates at each date.
+#'     \item prevision : matrix of all prevision made a each date.
+#'     \item VaR.test : Whether to perform Value at Risk forecast backtesting.
+#'     \item Loss.horizon : Horizon to summary the forecasts.
+#'     \item Loss.window : Window on which the forecasts are summarized.
+#'     \item Loss : Matrice containing the forecasts summary.
+#' }
+#' 
+#' @details 
+#' The \code{\link{summary.MDSVroll}} function compute the Root Mean Square Error, the Mean Average Error and the Quasi-Likehood 
+#' error to summarize the forecasts. Those loss functions are compute for cummulative (by horizon) and marginal forecasts. 
+#' For univariate realized variances model and joint log-returns and realized variances model, the loss functions are computed for
+#' the realized variances and for the univariate log-returns model, the loss functions are computed for the log-returns.
+#' For the Value-at-Risk basktest, the unconditionnal coverage test (see. Kupiec), the independance test (see Christoffersen) and the 
+#' conditional coverage test (see Christoffersen and ) are performed.
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
 #' @export
 
 "summary.MDSVroll" <- function(object, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756, ...){
@@ -654,8 +715,10 @@ g<-function(vector){
   Loss <- object$prevision[,1:7]
   if(ModelType == 2) Loss<-cbind(Loss,ModelType=object$prevision[,8])
   vars<-NULL
-  if(!(ModelType==1)) vars<-c(vars,paste0("R_for_",Loss.horizon),paste0("R_tru_",Loss.horizon))
-  if(!(ModelType==0)) vars<-c(vars,paste0("RV_for_",Loss.horizon),paste0("RV_tru_",Loss.horizon))
+  if(!(ModelType==1)) vars<-c(vars,paste0("R_for_",Loss.horizon),paste0("R_tru_",Loss.horizon),
+            paste0("R_for_m_",Loss.horizon),paste0("R_tru_m_",Loss.horizon))
+  if(!(ModelType==0)) vars<-c(vars,paste0("RV_for_",Loss.horizon),paste0("RV_tru_",Loss.horizon),
+                              paste0("RV_for_m_",Loss.horizon),paste0("RV_tru_m_",Loss.horizon))
   Loss_add <- matrix(0, nrow=nrow(Loss), ncol=length(vars))
   colnames(Loss_add) <- vars
   Loss <- cbind(Loss, Loss_add)
@@ -669,10 +732,16 @@ g<-function(vector){
       for(k in 1:length(Loss.horizon)) for_RV_var[k] <- sum(rvt_sim[1:Loss.horizon[k]])
       names(for_RV_var) <- paste0("RV_for_",Loss.horizon)
       Loss[t,colnames(Loss) %in% names(for_RV_var)]<-for_RV_var
+      for(k in 1:length(Loss.horizon)) for_RV_var[k] <- rvt_sim[Loss.horizon[k]]
+      names(for_RV_var) <- paste0("RV_for_m_",Loss.horizon)
+      Loss[t,colnames(Loss) %in% names(for_RV_var)]<-for_RV_var
       
       ech_rv <- object$prevision[t:nrow(Loss),"rvt"]
       for(k in 1:length(Loss.horizon)) RV_var[k] <- sum(ech_rv[1:Loss.horizon[k]])
       names(RV_var) <- paste0("RV_tru_",Loss.horizon)
+      Loss[t,colnames(Loss) %in% names(RV_var)]<-RV_var
+      for(k in 1:length(Loss.horizon)) RV_var[k] <- ech_rv[Loss.horizon[k]]
+      names(RV_var) <- paste0("RV_tru_m_",Loss.horizon)
       Loss[t,colnames(Loss) %in% names(RV_var)]<-RV_var
     }
   }
@@ -685,10 +754,16 @@ g<-function(vector){
       for(k in 1:length(Loss.horizon)) for_R_var[k] <- sum(rt2_sim[1:Loss.horizon[k]])
       names(for_R_var) <- paste0("R_for_",Loss.horizon)
       Loss[t,colnames(Loss) %in% names(for_R_var)]<-for_R_var
+      for(k in 1:length(Loss.horizon)) for_R_var[k] <- rt2_sim[Loss.horizon[k]]
+      names(for_R_var) <- paste0("R_for_m_",Loss.horizon)
+      Loss[t,colnames(Loss) %in% names(for_R_var)]<-for_R_var
       
       ech_r <- object$prevision[t:nrow(Loss),"rt"]
       for(k in 1:length(Loss.horizon)) R_var[k] <- sum((ech_r[1:Loss.horizon[k]])^2)
       names(R_var) <- paste0("R_tru_",Loss.horizon)
+      Loss[t,colnames(Loss) %in% names(R_var)]<-R_var
+      for(k in 1:length(Loss.horizon)) R_var[k] <- (ech_r[Loss.horizon[k]])^2
+      names(R_var) <- paste0("R_tru_m_",Loss.horizon)
       Loss[t,colnames(Loss) %in% names(R_var)]<-R_var
     }
   }
@@ -737,13 +812,15 @@ g<-function(vector){
   cat(paste0("Predictive density : ",round(sum(Pred_lik),2),"\n"))
   cat("-------------------- \n\n")
   
-  cat("Loss Functions :\n")
-  cat("------------------- \n")
+  cat("Cummulative Loss Functions : \n")
+  cat("---------------------------- \n")
   H_range        <- x$Loss.horizon
   if(!(x$ModelType == 1)){
     cat("Log-returns : \n")
     for_R_var      <- out[ind,grep('R_for', colnames(out), fixed=TRUE)]
+    for_R_var      <- for_R_var[,-grep('R_for_m', colnames(for_R_var), fixed=TRUE)]
     for_R_err      <- out[ind,grep('R_tru', colnames(out), fixed=TRUE)]
+    for_R_err      <- for_R_err[,-grep('R_tru_m', colnames(for_R_err), fixed=TRUE)]
     if(length(H_range)==1){
       QLIK_R         <- mean(log(for_R_var) + for_R_err/for_R_var, na.rm=TRUE)
       RMSE_R         <- sqrt(mean( (for_R_var - for_R_err)^2, na.rm=TRUE ))/H_range
@@ -765,7 +842,55 @@ g<-function(vector){
     if(x$ModelType == 2) cat("\n")
     cat("Realized Variances : \n")
     for_RV_var     <- out[ind,grep('RV_for', colnames(out), fixed=TRUE)]
+    for_RV_var      <- for_RV_var[,-grep('RV_for_m', colnames(for_RV_var), fixed=TRUE)]
     for_RV_err     <- out[ind,grep('RV_tru', colnames(out), fixed=TRUE)]
+    for_RV_err      <- for_RV_err[,-grep('RV_tru_m', colnames(for_RV_err), fixed=TRUE)]
+    if(length(H_range)==1){
+      QLIK_RV        <- mean(log(for_RV_var) + for_RV_err/for_RV_var, na.rm=TRUE)
+      RMSE_RV        <- sqrt(mean( (for_RV_var - for_RV_err)^2, na.rm=TRUE ))/H_range
+      MAE_RV         <- mean( abs(for_RV_var - for_RV_err), na.rm=TRUE )/H_range
+    }else{
+      QLIK_RV        <- colMeans(log(for_RV_var) + for_RV_err/for_RV_var, na.rm=TRUE)
+      RMSE_RV        <- sqrt(colMeans( (for_RV_var - for_RV_err)^2, na.rm=TRUE ))/H_range
+      MAE_RV         <- colMeans( abs(for_RV_var - for_RV_err), na.rm=TRUE )/H_range
+    }
+    
+    Y              <- matrix(c(QLIK_RV,RMSE_RV,MAE_RV),3,length(QLIK_RV),T)
+    row.names(Y)   <- c("QLIK","RMSE","MAE")
+    colnames(Y)    <- H_range
+    
+    print(round(Y,3))
+  }
+  
+  cat("Marginal Loss Functions : \n")
+  cat("------------------------- \n")
+  H_range        <- x$Loss.horizon
+  if(!(x$ModelType == 1)){
+    cat("Log-returns : \n")
+    for_R_var      <- out[ind,grep('R_for_m', colnames(out), fixed=TRUE)]
+    for_R_err      <- out[ind,grep('R_tru_m', colnames(out), fixed=TRUE)]
+    if(length(H_range)==1){
+      QLIK_R         <- mean(log(for_R_var) + for_R_err/for_R_var, na.rm=TRUE)
+      RMSE_R         <- sqrt(mean( (for_R_var - for_R_err)^2, na.rm=TRUE ))/H_range
+      MAE_R          <- mean( abs(for_R_var - for_R_err), na.rm=TRUE )/H_range
+    }else{
+      QLIK_R         <- colMeans(log(for_R_var) + for_R_err/for_R_var, na.rm=TRUE)
+      RMSE_R         <- sqrt(colMeans( (for_R_var - for_R_err)^2, na.rm=TRUE ))/H_range
+      MAE_R          <- colMeans( abs(for_R_var - for_R_err), na.rm=TRUE )/H_range
+    }
+    
+    
+    Y              <- matrix(c(QLIK_R,RMSE_R,MAE_R),3,length(QLIK_R),T)
+    row.names(Y)   <- c("QLIK","RMSE","MAE")
+    colnames(Y)    <- H_range
+    
+    print(round(Y,3))
+  }
+  if(!(x$ModelType == 0)){
+    if(x$ModelType == 2) cat("\n")
+    cat("Realized Variances : \n")
+    for_RV_var     <- out[ind,grep('RV_for_m', colnames(out), fixed=TRUE)]
+    for_RV_err     <- out[ind,grep('RV_tru_m', colnames(out), fixed=TRUE)]
     if(length(H_range)==1){
       QLIK_RV        <- mean(log(for_RV_var) + for_RV_err/for_RV_var, na.rm=TRUE)
       RMSE_RV        <- sqrt(mean( (for_RV_var - for_RV_err)^2, na.rm=TRUE ))/H_range
@@ -847,6 +972,22 @@ g<-function(vector){
 }
 
 
+#' @title Plot MDSV Rolling estimates, volatility forecast and backtesting
+#' @description Plot methods for the class \link{MDSVroll} as returned by the function \code{\link{MDSVroll}}.
+#' @param x An object of class \link{plot.MDSVroll}, output of the function \code{\link{plot.MDSVroll}}
+#' or class \link{MDSVroll} of the function \code{\link{MDSVroll}}.
+#' @param plot.type The type of plot to be draw.
+#' @param ... Further arguments passed to or from other methods.
+#' 
+#' @return One or more of the following plots :
+#' \itemize{
+#'     \item sigma : Graph of the square of log-returns and/or realized variances with its 1-ahead forecasts.
+#'     \item VaR : Graph showing the log-returns and the forecast conditional VaR at 1-ahead.
+#'     \item dens : Graph of predicative density of log-retunrs or realized variances at 1-ahead.
+#' }
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
 #' @export
 "plot.MDSVroll" <- function(x, plot.type=c("sigma","VaR","dens"),...) {
   stopifnot(class(x) == "MDSVroll")

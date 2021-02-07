@@ -19,36 +19,36 @@
 \method{print}{plot.MDSVfit}(x, ...)
 }
 \arguments{
-\item{object}{An object of class `MDSVfit`, output of the function \code{\link{MDSVfit}}.}
+\item{object}{An object of class \link{MDSVfit}, output of the function \code{\link{MDSVfit}}.}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{...}{Further arguments passed to or from other methods.}
 
-\item{x}{An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}},
-class `MDSVfit` of the function \code{\link{MDSVfit}} or `plot.MDSVfit` of the function \code{\link{plot.MDSVfit}}.}
+\item{x}{An object of class \link{summary.MDSVfit}, output of the function \code{\link{summary.MDSVfit}},
+class \link{MDSVfit} of the function \code{\link{MDSVfit}} or class \link{plot.MDSVfit} of the function \code{\link{plot.MDSVfit}}.}
 
-\item{plot.type}{A character designing the type of plot. `dis` for the stationnary distribution of the volatilities,
-`nic` for the New Impact Curve (see. Engle and Ng, 1993).}
+\item{plot.type}{A character designing the type of plot. \code{dis} for the stationnary distribution of the volatilities,
+\code{nic} for the New Impact Curve (see. Engle and Ng, 1993).}
 }
 \value{
 A list consisting of:
 \itemize{
-    \item{ModelType : }{type of model to be fitted.}
-    \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-    \item{N : }{number of components for the MDSV process.}
-    \item{K : }{number of states of each MDSV process component.}
-    \item{estimates : }{estimated parameters.}
-    \item{LogLikelihood : }{log-likelihood of the model on the data.}
-    \item{AIC : }{Akaike Information Criteria of the model on the data.}
-    \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-    \item{data : }{data use for the fitting.}
-    \item{...}{further arguments passed to the function.}
+    \item ModelType : type of model to be fitted.
+    \item LEVIER : wheter the fit take the leverage effect into account or not.
+    \item N : number of components for the MDSV process.
+    \item K : number of states of each MDSV process component.
+    \item estimates : estimated parameters.
+    \item LogLikelihood : log-likelihood of the model on the data.
+    \item AIC : Akaike Information Criteria of the model on the data.
+    \item BIC : Bayesian Information Criteria of the model on the data.
+    \item data : data use for the fitting.
+    \item ... : further arguments passed to the function.
 }
 }
 \description{
-Summary, print and plot methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
+Summary, print and plot methods for the class \link{MDSVfit} as returned by the function \code{\link{MDSVfit}}.
 }
 \details{
-`dis` as argument `plot.type` lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
+\code{dis} as argument \code{plot.type} lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
 effect is not took into account for that plot.
 }
 \references{

@@ -10,21 +10,21 @@
 \method{print}{plot.MDSVfilter}(x, ...)
 }
 \arguments{
-\item{x}{An object of class `MDSVfilter`, output of the function \code{\link{MDSVfilter}}
-or class `plot.MDSVfilter` of the function \code{\link{plot.MDSVfilter}}.}
+\item{x}{An object of class \link{MDSVfilter}, output of the function \code{\link{MDSVfilter}}
+or class \link{plot.MDSVfilter} of the function \code{\link{plot.MDSVfilter}}.}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{...}{Further arguments passed to or from other methods.}
 }
 \value{
 A list consisting of:
 \itemize{
-    \item{V_t : }{smoothed volatilities taking leverage effect into accound when existing.}
-    \item{data : }{data use for the filtering.}
-    \item{dates : }{vector or names of data designing the dates.}
-    \item{ModelType : }{type of model to be filtered.}
-    \item{... : }{further arguments passed to the function.}
+    \item V_t : smoothed volatilities taking leverage effect into accound when existing.
+    \item data : data use for the filtering.
+    \item dates : vector or names of data designing the dates.
+    \item ModelType : type of model to be filtered.
+    \item ... : further arguments passed to the function.
 }
 }
 \description{
-Plot methods for the class `MDSVfilter` as returned by the function \link{MDSVfilter}.
+Plot methods for the class \link{MDSVfilter} as returned by the function \code{\link{MDSVfilter}}.
 }

@@ -5,19 +5,19 @@
 #' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
 #' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
-#' @param ... further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
+#' @param ... Further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
 #' 
 #' @return A list consisting of:
 #' \itemize{
-#'     \item{ModelType : }{type of model to be fitted.}
-#'     \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-#'     \item{N : }{number of components for the MDSV process.}
-#'     \item{K : }{number of states of each MDSV process component.}
-#'     \item{estimates : }{estimated parameters.}
-#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
-#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
-#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-#'     \item{data : }{data use for the fitting.}
+#'     \item ModelType : type of model to be fitted.
+#'     \item LEVIER : wheter the fit take the leverage effect into account or not.
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item estimates : estimated parameters.
+#'     \item LogLikelihood : log-likelihood of the model on the data.
+#'     \item AIC : Akaike Information Criteria of the model on the data.
+#'     \item BIC : Bayesian Information Criteria of the model on the data.
+#'     \item data : data use for the fitting.
 #' }
 #' 
 #' @details 
@@ -32,7 +32,7 @@
 #' \item{BIC : }{\eqn{L - (k/2)*log(n)}}
 #' }
 #' where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
-#' The \link[base]{class} of the output of this function is \code{MDSVfit}. This class has a \link[base]{summary}, 
+#' The \link[base]{class} of the output of this function is \code{\link{MDSVfit}}. This class has a \link[base]{summary}, 
 #' \link[base]{print} and \link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
 #' \code{\link{summary.MDSVfit}}, \code{\link{print.MDSVfit}} and \code{\link{plot.MDSVfit}} for more details.
 #' 
@@ -56,7 +56,7 @@
 #' # Summary
 #' summary(out)
 #' # Plot
-#' plot(out,"both")
+#' plot(out,c("des","nic"))
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
@@ -75,6 +75,7 @@
 #' }
 
 #' @export
+#' @import Rcpp
 #' @importFrom Rsolnp solnp 
 MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   
@@ -126,13 +127,13 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
   t<-0
   
-  while(!is.numeric(logLik(ech=donne,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    if(t>1000) stop("MDSVfit(): Fail to find an optimization starting point")
-    
-    para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
-    
-    t<-t+1
-  }
+  # while(!is.numeric(logLik(ech=donne,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
+  #   if(t>1000) stop("MDSVfit(): Fail to find an optimization starting point")
+  #   
+  #   para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
+  #   
+  #   t<-t+1
+  # }
   
   
   oldw <- getOption("warn")
@@ -174,30 +175,30 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 }
 
 #' @title Summarize, print and plot MDSV Fitting
-#' @description Summary, print and plot methods for the class `MDSVfit` as returned by the function \link{MDSVfit}.
-#' @param object An object of class `MDSVfit`, output of the function \code{\link{MDSVfit}}.
-#' @param x An object of class `summary.MDSVfit`, output of the function \code{\link{summary.MDSVfit}},
-#' class `MDSVfit` of the function \code{\link{MDSVfit}} or `plot.MDSVfit` of the function \code{\link{plot.MDSVfit}}.
-#' @param plot.type A character designing the type of plot. `dis` for the stationnary distribution of the volatilities,
-#'  `nic` for the New Impact Curve (see. Engle and Ng, 1993).
-#' @param ... further arguments passed to or from other methods.
+#' @description Summary, print and plot methods for the class \link{MDSVfit} as returned by the function \code{\link{MDSVfit}}.
+#' @param object An object of class \link{MDSVfit}, output of the function \code{\link{MDSVfit}}.
+#' @param x An object of class \link{summary.MDSVfit}, output of the function \code{\link{summary.MDSVfit}},
+#' class \link{MDSVfit} of the function \code{\link{MDSVfit}} or class \link{plot.MDSVfit} of the function \code{\link{plot.MDSVfit}}.
+#' @param plot.type A character designing the type of plot. \code{dis} for the stationnary distribution of the volatilities,
+#'  \code{nic} for the New Impact Curve (see. Engle and Ng, 1993).
+#' @param ... Further arguments passed to or from other methods.
 #' 
 #' @return A list consisting of:
 #' \itemize{
-#'     \item{ModelType : }{type of model to be fitted.}
-#'     \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-#'     \item{N : }{number of components for the MDSV process.}
-#'     \item{K : }{number of states of each MDSV process component.}
-#'     \item{estimates : }{estimated parameters.}
-#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
-#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
-#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-#'     \item{data : }{data use for the fitting.}
-#'     \item{...}{further arguments passed to the function.}
+#'     \item ModelType : type of model to be fitted.
+#'     \item LEVIER : wheter the fit take the leverage effect into account or not.
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item estimates : estimated parameters.
+#'     \item LogLikelihood : log-likelihood of the model on the data.
+#'     \item AIC : Akaike Information Criteria of the model on the data.
+#'     \item BIC : Bayesian Information Criteria of the model on the data.
+#'     \item data : data use for the fitting.
+#'     \item ... : further arguments passed to the function.
 #' }
 #'
 #' @details 
-#' `dis` as argument `plot.type` lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
+#' \code{dis} as argument \code{plot.type} lead to plot the stationnary distribution of the Markov chain process MDSV. The leverage
 #' effect is not took into account for that plot.
 #' 
 #' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
@@ -321,7 +322,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
     tmp           <- c(list(x = temp[,1],
                             y = temp[,2],
                             type = "l",
-                            main = "Density plot : Stationnary distribution of the volatilities",
+                            main = "Density plot : Stationnary \n distribution of the volatilities",
                             xlab = "volatilities",
                             ylab = "probabilities",
                             ...  = ...), x[-(1:10)])

@@ -4,11 +4,11 @@ Title: Multifractal Discrete Stochastic Volatility
 Version: 1.0
 Date: 2021-01-31
 Authors@R: person("Kassimou Abdoul Haki", "Maoude", role = c("cre","aut"), email =  "abdoulhaki.maoude@aiesec.net")
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Kassimou Abdoul Haki MAOUDE <abdoulhaki.maoude@aiesec.net>
 Description: Estimating and forecasting financial data with MDSV model
 License: GPL-3 + file LICENSE
 URL: https://github.com/Abdoulhaki/MDSV
 LazyData: true
-Imports: Rcpp (>= 1.0.6)
+Imports: Rcpp (>= 1.0.6), RcppArmadillo, RcppEigen
 LinkingTo: Rcpp, RcppArmadillo, RcppEigen
 RoxygenNote: 7.1.1

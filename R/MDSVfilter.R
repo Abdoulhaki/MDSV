@@ -3,28 +3,28 @@
 #' @param N An integer designing the number of components for the MDSV process
 #' @param K An integer designing the number of states of each MDSV process component
 #' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
-#' @param para A vector of parameters use for the MDSV filtering on `data`. For more informations see Details. 
+#' @param para A vector of parameters use for the MDSV filtering on \code{data}. For more informations see Details. 
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
 #' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
 #' 
-#' @return A list consisting of:
+#' @return A list consisting of: 
 #' \itemize{
-#'     \item{ModelType : }{type of model to be filtered.}
-#'     \item{LEVIER : }{wheter the filter take the leverage effect into account or not.}
-#'     \item{N : }{number of components for the MDSV process.}
-#'     \item{K : }{number of states of each MDSV process component.}
-#'     \item{data : }{data use for the filtering.}
-#'     \item{dates : }{vector or names of data designing the dates.}
-#'     \item{estimates : }{input parameters.}
-#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
-#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
-#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-#'     \item{Levier : }{numeric vector representing the leverage effect at each date. `Levier` is 1 when no leverage is detected}
-#'     \item{filtred_proba : }{matrix containing the filtred probabilities \eqn{\mathbb{P}[C_t=c_i\mid x_1,\dots,\x_t]} of the Markov Chain.}
-#'     \item{smoothed_proba : }{matrix containing the smoothed probabilities \eqn{\mathbb{P}[C_t=c_i\mid x_1,\dots,\x_T]} of the Markov Chain.}
-#'     \item{Marg_loglik : }{marginal log-likelihood corresponding to the log-likelihood of log-returns. This is only return when \eqn{ModelType = 2}.}
-#'     \item{VaR95 : }{5% Value-at-Risk compute empirically.}
-#'     \item{VaR99 : }{1% Value-at-Risk compute empirically.}
+#'     \item ModelType : type of model to be filtered.
+#'     \item LEVIER : wheter the filter take the leverage effect into account or not.
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item data : data use for the filtering.
+#'     \item dates : vector or names of data designing the dates.
+#'     \item estimates : input parameters.
+#'     \item LogLikelihood : log-likelihood of the model on the data.
+#'     \item AIC : Akaike Information Criteria of the model on the data.
+#'     \item BIC : Bayesian Information Criteria of the model on the data.
+#'     \item Levier : numeric vector representing the leverage effect at each date. \code{Levier} is 1 when no leverage is detected
+#'     \item filtred_proba : matrix containing the filtred probabilities \eqn{P(C_t=c_i | x_1,\dots, x_t)} of the Markov Chain.
+#'     \item smoothed_proba : matrix containing the smoothed probabilities \eqn{P(C_t=c_i | x_1,\dots, x_T)} of the Markov Chain.
+#'     \item Marg_loglik : marginal log-likelihood corresponding to the log-likelihood of log-returns. This is only return when \eqn{ModelType = 2}.
+#'     \item VaR95 : 5\% Value-at-Risk compute empirically.
+#'     \item VaR99 : 1\% Value-at-Risk compute empirically.
 #' }
 #' 
 #' @details 
@@ -53,7 +53,7 @@
 #' \item{BIC : }{\eqn{L - (k/2)*log(n)}}
 #' }
 #' where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
-#' The \link[base]{class} of the output of this function is \code{MDSVfilter}. This class has a \link[base]{summary}, 
+#' The \link[base]{class} of the output of this function is \code{\link{MDSVfilter}}. This class has a \link[base]{summary}, 
 #' \link[base]{print} and \link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
 #' \code{\link{summary.MDSVfilter}}, \code{\link{print.MDSVfilter}} and \code{\link{plot.MDSVfilter}} for more details.
 #' 
@@ -93,7 +93,7 @@
 #' LEVIER    <- TRUE # No leverage effect
 #' 
 #' para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72, 
-#'               xi = -0.5, varphi = 0.93, delta1 = 0.93, delta2 = 0.04, shape = 2.10
+#'               xi = -0.5, varphi = 0.93, delta1 = 0.93, delta2 = 0.04, shape = 2.10,
 #'               l = 0.78, theta = 0.876)
 #' # Model filtering
 #' out       <- MDSVfilter(K = K, N = N,data = nasdaq, para = para, ModelType = ModelType, LEVIER = LEVIER)
@@ -102,7 +102,8 @@
 #' # Plot
 #' plot(out)
 #' }
-
+#' 
+#' @import Rcpp
 #' @export
 MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
   
@@ -261,30 +262,30 @@ qmist2n <- function(q,sigma,p){
 }
 
 #' @title Summarize and print MDSV Filtering
-#' @description Summary and print methods for the class `MDSVfilter` as returned by the function \link{MDSVfilter}.
-#' @param object An object of class `MDSVfilter`, output of the function \code{\link{MDSVfilter}}.
-#' @param x An object of class `summary.MDSVfilter`, output of the function \code{\link{summary.MDSVfilter}}
-#' or class `MDSVfilter` of the function \code{\link{MDSVfilter}}.
-#' @param ... further arguments passed to or from other methods.
+#' @description Summary and print methods for the class \link{MDSVfilter} as returned by the function \code{\link{MDSVfilter}}.
+#' @param object An object of class \link{MDSVfilter}, output of the function \code{\link{MDSVfilter}}.
+#' @param x An object of class \link{summary.MDSVfilter}, output of the function \code{\link{summary.MDSVfilter}}
+#' or class \link{MDSVfilter} of the function \code{\link{MDSVfilter}}.
+#' @param ... Further arguments passed to or from other methods.
 #' 
-#' @return A list consisting of:.
+#' @return A list consisting of:
 #' \itemize{
-#'     \item{ModelType : }{type of model to be filtered.}
-#'     \item{LEVIER : }{wheter the filter take the leverage effect into account or not.}
-#'     \item{N : }{number of components for the MDSV process.}
-#'     \item{K : }{number of states of each MDSV process component.}
-#'     \item{data : }{data use for the filtering.}
-#'     \item{dates : }{vector or names of data designing the dates.}
-#'     \item{estimates : }{input parameters.}
-#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
-#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
-#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-#'     \item{Levier : }{numeric vector representing the leverage effect at each date. `Levier` is 1 when no leverage is detected}
-#'     \item{filtred_proba : }{matrix containing the filtred probabilities \eqn{\mathbb{P}[C_t=c_i\mid x_1,\dots,\x_t]} of the Markov Chain.}
-#'     \item{smoothed_proba : }{matrix containing the smoothed probabilities \eqn{\mathbb{P}[C_t=c_i\mid x_1,\dots,\x_T]} of the Markov Chain.}
-#'     \item{Marg_loglik : }{marginal log-likelihood corresponding to the log-likelihood of log-returns. This is only return when \eqn{ModelType = 2}.}
-#'     \item{VaR95 : }{5% Value-at-Risk compute empirically.}
-#'     \item{VaR99 : }{1% Value-at-Risk compute empirically.}
+#'     \item ModelType : type of model to be filtered.
+#'     \item LEVIER : wheter the filter take the leverage effect into account or not.
+#'     \item N : number of components for the MDSV process.
+#'     \item K : number of states of each MDSV process component.
+#'     \item data : data use for the filtering.
+#'     \item dates : vector or names of data designing the dates.
+#'     \item estimates : input parameters.
+#'     \item LogLikelihood : log-likelihood of the model on the data.
+#'     \item AIC : Akaike Information Criteria of the model on the data.
+#'     \item BIC : Bayesian Information Criteria of the model on the data.
+#'     \item Levier : numeric vector representing the leverage effect at each date. \code{Levier} is 1 when no leverage is detected
+#'     \item filtred_proba : matrix containing the filtred probabilities \eqn{\mathbb{P}(C_t=c_i\mid x_1,\dots,\x_t)} of the Markov Chain.
+#'     \item smoothed_proba : matrix containing the smoothed probabilities \eqn{\mathbb{P}(C_t=c_i\mid x_1,\dots,\x_T)} of the Markov Chain.
+#'     \item Marg_loglik : marginal log-likelihood corresponding to the log-likelihood of log-returns. This is only return when \eqn{ModelType = 2}.
+#'     \item VaR95 : 5% Value-at-Risk compute empirically.
+#'     \item VaR99 : 1% Value-at-Risk compute empirically.
 #' }
 #' 
 #' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
@@ -350,18 +351,18 @@ qmist2n <- function(q,sigma,p){
 }
 
 #' @title Plot MDSV Filtering
-#' @description Plot methods for the class `MDSVfilter` as returned by the function \link{MDSVfilter}.
-#' @param x An object of class `MDSVfilter`, output of the function \code{\link{MDSVfilter}}
-#' or class `plot.MDSVfilter` of the function \code{\link{plot.MDSVfilter}}.
-#' @param ... further arguments passed to or from other methods.
+#' @description Plot methods for the class \link{MDSVfilter} as returned by the function \code{\link{MDSVfilter}}.
+#' @param x An object of class \link{MDSVfilter}, output of the function \code{\link{MDSVfilter}}
+#' or class \link{plot.MDSVfilter} of the function \code{\link{plot.MDSVfilter}}.
+#' @param ... Further arguments passed to or from other methods.
 #' 
 #' @return A list consisting of:
 #' \itemize{
-#'     \item{V_t : }{smoothed volatilities taking leverage effect into accound when existing.}
-#'     \item{data : }{data use for the filtering.}
-#'     \item{dates : }{vector or names of data designing the dates.}
-#'     \item{ModelType : }{type of model to be filtered.}
-#'     \item{... : }{further arguments passed to the function.}
+#'     \item V_t : smoothed volatilities taking leverage effect into accound when existing.
+#'     \item data : data use for the filtering.
+#'     \item dates : vector or names of data designing the dates.
+#'     \item ModelType : type of model to be filtered.
+#'     \item ... : further arguments passed to the function.
 #' }
 #' 
 #' @importFrom graphics par
@@ -486,7 +487,9 @@ qmist2n <- function(q,sigma,p){
     
   }
   
+  oldw <- getOption("warn")
   par(.pardefault)
+  options(warn = oldw)
   
   invisible(x)
 }

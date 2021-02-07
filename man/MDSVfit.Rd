@@ -17,20 +17,20 @@ MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
 
 \item{LEVIER}{if \code{TRUE}, estime the MDSV model with leverage.}
 
-\item{...}{further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.}
+\item{...}{Further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.}
 }
 \value{
 A list consisting of:
 \itemize{
-    \item{ModelType : }{type of model to be fitted.}
-    \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-    \item{N : }{number of components for the MDSV process.}
-    \item{K : }{number of states of each MDSV process component.}
-    \item{estimates : }{estimated parameters.}
-    \item{LogLikelihood : }{log-likelihood of the model on the data.}
-    \item{AIC : }{Akaike Information Criteria of the model on the data.}
-    \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-    \item{data : }{data use for the fitting.}
+    \item ModelType : type of model to be fitted.
+    \item LEVIER : wheter the fit take the leverage effect into account or not.
+    \item N : number of components for the MDSV process.
+    \item K : number of states of each MDSV process component.
+    \item estimates : estimated parameters.
+    \item LogLikelihood : log-likelihood of the model on the data.
+    \item AIC : Akaike Information Criteria of the model on the data.
+    \item BIC : Bayesian Information Criteria of the model on the data.
+    \item data : data use for the fitting.
 }
 }
 \description{
@@ -48,7 +48,7 @@ AIC and BIC are computed using the formulas :
 \item{BIC : }{\eqn{L - (k/2)*log(n)}}
 }
 where \eqn{L} is the log-likelihood, \eqn{k} is the number of parameters and \eqn{n} the number of observations in the dataset.
-The \link[base]{class} of the output of this function is \code{MDSVfit}. This class has a \link[base]{summary}, 
+The \link[base]{class} of the output of this function is \code{\link{MDSVfit}}. This class has a \link[base]{summary}, 
 \link[base]{print} and \link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
 \code{\link{summary.MDSVfit}}, \code{\link{print.MDSVfit}} and \code{\link{plot.MDSVfit}} for more details.
 }
@@ -66,7 +66,7 @@ out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER =
 # Summary
 summary(out)
 # Plot
-plot(out,"both")
+plot(out,c("des","nic"))
 
 
 # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ

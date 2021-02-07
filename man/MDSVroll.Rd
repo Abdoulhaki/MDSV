@@ -38,29 +38,45 @@ MDSVroll(
 
 \item{n.bootpred}{An integer designing the number of simulation based re-fits the model. Not relevant for one horizon forecast or for non-leverage type model.}
 
+\item{forecast.length}{An integer designing the length of the total forecast for which out of sample data from the dataset will be used for testing.}
+
+\item{refit.every}{Determines every how many periods the model is re-estimated.}
+
+\item{refit.window}{Whether the refit is done on an expanding window including all the previous data or a moving window where all previous 
+data is used for the first estimation and then moved by a length equal to refit.every (unless the window.size option is used instead).}
+
+\item{window.size}{If not NULL, determines the size of the moving window in the rolling estimation, which also determines the first point used.}
+
+\item{calculate.VaR}{Whether to calculate forecast Value at Risk during the estimation.}
+
+\item{VaR.alpha}{The Value at Risk tail level to calculate.}
+
+\item{cluster}{A cluster object created by calling makeCluster from the parallel package. If it is not NULL, then this will be used for parallel estimation of the refits (remember to stop the cluster on completion).}
+
 \item{rseed}{An integer use to initialize the random number generator for the resampling with replacement method (if not supplied take randomly).}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{...}{Further arguments passed to or from other methods.}
 }
 \value{
 A list consisting of:
-\describe{
-    \item{ModelType : }{type of model to be fitted.}
-    \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
-    \item{N : }{number of components for the MDSV process.}
-    \item{K : }{number of states of each MDSV process component.}
-    \item{estimates : }{estimated parameters.}
-    \item{LogLikelihood : }{log-likelihood of the model on the data.}
-    \item{AIC : }{Akaike Information Criteria of the model on the data.}
-    \item{BIC : }{Bayesian Information Criteria of the model on the data.}
-    \item{data : }{data use for the fitting.}
-    \item{dates : }{vector or names of data designing the dates.}
-    \item{n.ahead : }{integer designing the forecast horizon.}
-    \item{n.bootpred : }{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
-    \item{rt_sim : }{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
-    \item{rt2 : }{vector of mean by column of the square of rt_sim.}
-    \item{rvt_sim : }{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
-    \item{rvt : }{vector of mean by column of rvt_sim.}
+\itemize{
+    \item N : number of components for the MDSV process.
+    \item K : number of states of each MDSV process component.
+    \item ModelType : type of models fitted.
+    \item LEVIER : wheter the fit take the leverage effect into account or not.
+    \item n.ahead : integer designing the forecast horizon.
+    \item forecast.length : length of the total forecast for which out of sample data from the dataset will be used for testing.
+    \item refit.every : Determines every how many periods the model is re-estimated.
+    \item refit.window : Whether the refit is done on an expanding window including all the previous data or a moving window where all previous 
+data is used for the first estimation and then moved by a length equal to refit.every (unless the window.size option is used instead).
+    \item window.size : If not NULL, determines the size of the moving window in the rolling estimation, which also determines the first point used.
+    \item calculate.VaR : Whether to calculate forecast Value at Risk during the estimation.
+    \item VaR.alpha : The Value at Risk tail level to calculate.
+    \item cluster : A cluster object created by calling makeCluster from the parallel package.
+    \item data : data use for the fitting.
+    \item dates : vector or names of data designing the dates.
+    \item estimates : matrix of all the parameters estimates at each date.
+    \item prevision : matrix of all prevision made a each date.
 }
 }
 \description{
@@ -68,46 +84,57 @@ Method for creating rolling estimates and volatility forecast from MDSV models w
 with parallel functionality. The rolling estimate can be done using univariate log-returns or realized variances or using joint log-returns and realized variances.
 }
 \details{
-The MDSVboot perform the forecasting of the model a different horizon. The forecasting is based on a close form where the estimation does not
-involve leverage effect (see Hamilton, 1989. chapter 22 for hidden markov model forecasting). But to take into account the leverage effect,
-the forecasting is perform by a bootstrap analysis. The innovations are bootstrapped using a standard normal distribution. This process 
-is performed in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
-(see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect. 
-
-The \link[base]{class} of the output of this function is \code{MDSVboot}. This class has a \link[base]{summary} and 
-\link[base]{print} \link[utils]{methods} to summarize and print the results. See 
-\code{\link{summary.MDSVboot}}, \code{\link{print.MDSVboot}} and \code{\link{plot.MDSVboot}} for more details.
+This is a wrapper function for creating rolling estimates and volatility forecasts using MDSV models, and optionally calculating the Value at Risk 
+at specified levels. The argument refit.every determines every how many periods the model is re-estimated. Given a dataset of length n, 
+it is possible to set how many periods from the end to use for out of sample forecasting (using the forecast.length option). 
+For rolling 1-ahead forecasts and forecasts without leverage effect, no bootstrap in done and then n.bootpred is not required.
+However, the Value-at-Risk baskesting is done for 1-ahead forecasts. A very important part of the function is performed 
+in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
+(see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect.
+When cluster is not NULL, the estimations and forecasting are perform with parallel functionalilty which  is entirely based 
+on the \pkg{parallel} package, and it is up to the user to pass a cluster object, and then stop it once the routine is completed.
+The \link[base]{class} of the output of this function is \code{MDSVroll}. This class has a \link[base]{summary}, \link[base]{print} and 
+\link[base]{plot} \link[utils]{methods} to summarize, print and plot the results. See 
+\code{\link{summary.MDSVroll}}, \code{\link{print.MDSVroll}} and \code{\link{plot.MDSVroll}} for more details.
 }
 \examples{
 \dontrun{
 # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
 data(sp500)         # Data loading
-N         <- 2      # Number of components
-K         <- 3      # Number of states
-ModelType <- 0      # Univariate log-returns
-LEVIER    <- FALSE  # No leverage effect
 
-# Model estimation
-out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
-# Model forecasting (no bootstrapp is need as no leverage)
-para      <-out_fit$estimates # parameter
-out       <- MDSVboot(fit = out_fit, n.ahead = 100, rseed = 125)
+N                <- 2            # Number of components
+K                <- 3            # Number of states
+ModelType        <- 0            # Univariate log-returns
+LEVIER           <- FALSE        # No leverage effect
+n.ahead          <- 100          # Forecast horizon
+forecast.length  <- 756          # rolling forecast length
+refit.every      <- 63           # Period to re-estimate the model
+refit.window     <- "recursive"  # No leverage effect
+calculate.VaR    <- TRUE
+VaR.alpha        <- c(0.01, 0.05, 0.1)
+cl               <- parallel::makeCluster(parallel::detectCores()[1]-1)
+rseed            <- 125
+
+# rolling forecasts
+out<-MDSVroll(N=N, K=K, data=data, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+            forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
+            calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
+parallel::stopCluster(cl)
 # Summary
-summary(out)
+summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
+# plot
+plot(out, plot.type=c("VaR","sigma","dens"))
 
 
 # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
 data(nasdaq)       # Data loading
-N         <- 3     # Number of components
-K         <- 3     # Number of states
-ModelType <- 2     # Joint log-returns and realized variances
-LEVIER    <- TRUE  # No leverage effect
 
-out_fit   <- MDSVfit(K = K, N = N, data = nasdaq, ModelType = ModelType, LEVIER = LEVIER)
-# Model bootstrap forecasting
-out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootstrap = 10000, rseed = 349)
+# rolling forecasts
+out<-MDSVroll(N=3, K=3, data=nasdaq, ModelType=2, LEVIER=TRUE, n.ahead = 10, forecast.length = 100, 
+            refit.every = 25, refit.window = "recursive", window.size = 1000, 
+            calculate.VaR = TRUE, VaR.alpha = c(0.01,0.05), cluster = NULL, rseed = NA)
 # Summary
-summary(out)
+summary(out, VaR.test=TRUE, Loss.horizon = c(1,2,4,9), Loss.window = 50)
 
 }
 
@@ -115,7 +142,9 @@ summary(out)
 \references{
 Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
 \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
+
+JamesHamilton: D.(1994), time series analysis, 1994.
 }
 \seealso{
-For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and bootstrap forecasting \code{\link{MDSVboot}}.
 }
