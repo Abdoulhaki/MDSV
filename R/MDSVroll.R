@@ -1,16 +1,107 @@
+#' @title MDSV Rolling estimates, volatility forecast and backtesting
+#' @description Method for creating rolling estimates and volatility forecast from MDSV models with option for refitting every n periods 
+#' with parallel functionality. The rolling estimate can be done using univariate log-returns or realized variances or using joint log-returns and realized variances.
+#' @param N An integer designing the number of components for the MDSV process
+#' @param K An integer designing the number of states of each MDSV process component
+#' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
+#' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
+#' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
+#' @param n.ahead An integer designing the forecast horizon.
+#' @param n.bootpred An integer designing the number of simulation based re-fits the model. Not relevant for one horizon forecast or for non-leverage type model.
+#' @param forecast.length
+#' @param refit.every
+#' @param refit.window
+#' @param window.size
+#' @param calculate.VaR
+#' @param VaR.alpha
+#' @param cluster
+#' @param rseed An integer use to initialize the random number generator for the resampling with replacement method (if not supplied take randomly).
+#' @param ... further arguments passed to or from other methods.
+#' 
+#' @return A list consisting of:
+#' \describe{
+#'     \item{ModelType : }{type of model to be fitted.}
+#'     \item{LEVIER : }{wheter the fit take the leverage effect into account or not.}
+#'     \item{N : }{number of components for the MDSV process.}
+#'     \item{K : }{number of states of each MDSV process component.}
+#'     \item{estimates : }{estimated parameters.}
+#'     \item{LogLikelihood : }{log-likelihood of the model on the data.}
+#'     \item{AIC : }{Akaike Information Criteria of the model on the data.}
+#'     \item{BIC : }{Bayesian Information Criteria of the model on the data.}
+#'     \item{data : }{data use for the fitting.}
+#'     \item{dates : }{vector or names of data designing the dates.}
+#'     \item{n.ahead : }{integer designing the forecast horizon.}
+#'     \item{n.bootpred : }{integer designing the number of simulation based re-fits used to generate the parameter distribution.}
+#'     \item{rt_sim : }{matrix of log-returns forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rt2 : }{vector of mean by column of the square of rt_sim.}
+#'     \item{rvt_sim : }{matrix of realized variances forecast simulated where the row stand for the simulations and the columns for the horizon.}
+#'     \item{rvt : }{vector of mean by column of rvt_sim.}
+#' }
+#' 
+#' @details 
+#' The MDSVboot perform the forecasting of the model a different horizon. The forecasting is based on a close form where the estimation does not
+#' involve leverage effect (see Hamilton, 1989. chapter 22 for hidden markov model forecasting). But to take into account the leverage effect,
+#' the forecasting is perform by a bootstrap analysis. The innovations are bootstrapped using a standard normal distribution. This process 
+#' is performed in \code{C++} through the \pkg{Rcpp} package. The leverage effect is taken into account according to the FHMV model 
+#' (see Augustyniak et al., 2019). For the univariate realized variances forecasting, log-returns are required to add leverage effect. 
+#'
+#' The \link[base]{class} of the output of this function is \code{MDSVboot}. This class has a \link[base]{summary} and 
+#' \link[base]{print} \link[utils]{methods} to summarize and print the results. See 
+#' \code{\link{summary.MDSVboot}}, \code{\link{print.MDSVboot}} and \code{\link{plot.MDSVboot}} for more details.
+#' 
+#' @references  
+#' Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
+#' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
+#' 
+#' @seealso For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' 
+#' @examples 
+#' \dontrun{
+#' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
+#' data(sp500)         # Data loading
+#' N         <- 2      # Number of components
+#' K         <- 3      # Number of states
+#' ModelType <- 0      # Univariate log-returns
+#' LEVIER    <- FALSE  # No leverage effect
+#' 
+#' # Model estimation
+#' out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
+#' # Model forecasting (no bootstrapp is need as no leverage)
+#' para      <-out_fit$estimates # parameter
+#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, rseed = 125)
+#' # Summary
+#' summary(out)
+#' 
+#' 
+#' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
+#' data(nasdaq)       # Data loading
+#' N         <- 3     # Number of components
+#' K         <- 3     # Number of states
+#' ModelType <- 2     # Joint log-returns and realized variances
+#' LEVIER    <- TRUE  # No leverage effect
+#' 
+# Model estimation
+#' out_fit   <- MDSVfit(K = K, N = N, data = nasdaq, ModelType = ModelType, LEVIER = LEVIER)
+#' # Model bootstrap forecasting
+#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootstrap = 10000, rseed = 349)
+#' # Summary
+#' summary(out)
+#' 
+#' }
+#' 
 #' @export
 #' @importFrom mhsmm sim.mc
 #' @importFrom Rsolnp solnp
 #' @importFrom foreach foreach %dopar%
-#' @import doParallel doSNOW
-MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.length = 500, 
+#' @import doSNOW
+MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpred = 10000, forecast.length = 500, 
                    refit.every = 25, refit.window = "recursive", window.size = NULL, 
                    calculate.VaR = TRUE, VaR.alpha = c(0.01, 0.05), cluster = NULL, rseed = NA, ...){
   
   if ( (!is.numeric(N)) || (!is.numeric(K)) ) {
-    stop("MDSVroll(): input N and K must be numeric!")
+    stop("MDSVroll(): input N and K must all be numeric!")
   }else if(!(N%%1==0) || !(K%%1==0)){
-    stop("MDSVfit(): input N and K must be integer!")
+    stop("MDSVfit(): input N and K must all be integer!")
   }
   
   if(!is.numeric(ModelType)) {
@@ -45,8 +136,11 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
     stop("MDSVroll(): data second colomn must be positive!")
   }
 
-  if ( (!is.numeric(n.ahead)) || (!is.numeric(forecast.length)) || (!is.numeric(refit.every)) ) {
-    stop("MDSVroll(): inputs n.ahead, forecast.length and refit.every must all be numeric!")
+  if ( (!is.numeric(n.ahead)) || (!is.numeric(forecast.length)) || 
+       (!is.numeric(refit.every)) || (!is.numeric(n.bootpred)) ) {
+    stop("MDSVroll(): inputs n.ahead, forecast.length, refit.every and n.bootpred must all be numeric!")
+  }else if(!(n.ahead%%1==0) || !(forecast.length%%1==0) || !(refit.every%%1==0) || !(n.bootpred%%1==0)){
+    stop("MDSVfit(): input n.ahead, forecast.length, refit.every and n.bootpred must all be integer!")
   }
   
   if(forecast.length < refit.every){
@@ -69,6 +163,8 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
   
   if ( (!is.null(window.size)) & (!is.numeric(window.size)) ) {
     stop("MDSVroll(): input window.size must be numeric or set to NULL!")
+  }else if(!(window.size%%1==0)){
+    stop("MDSVfit(): input window.size must be integer!")
   }
   
   if ( (!is.null(cluster)) & (!("cluster" %in% class(cluster))) ) {
@@ -86,10 +182,15 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
   
   if ( (!is.numeric(VaR.alpha)) ) {
     stop("MDSVroll(): input VaR.alpha must be numeric!")
+  }else if(!prod(VaR.alpha > 0) & !prod(VaR.alpha < 1)){
+    stop("MDSVroll(): input VaR.alpha must be between 0 and 1!")
   }
   
   if ((!is.numeric(rseed)) || is.na(rseed)) {
-    print("MDSVboot() WARNING: input rseed must be numeric! rseed set to random")
+    print("MDSVroll() WARNING: input rseed must be numeric! rseed set to random")
+    rseed <- sample.int(.Machine$integer.max,1)
+  }else if(!(rseed%%1==0)){
+    print("MDSVroll() WARNING: input rseed must be an integer! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
   }
   
@@ -188,7 +289,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
           sig    <- sig*Levier
         }
         
-        for(iter in 1:length(VaR.alpha)){
+        if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
           model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
         }
         
@@ -245,7 +346,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
          sig    <- sig*Levier
        }
        
-       for(iter in 1:length(VaR.alpha)){
+       if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
          model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
        }
      }else{
@@ -289,7 +390,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
           sig    <- sig*Levier
         }
         
-        for(iter in 1:length(VaR.alpha)){
+        if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
           model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
         }
       }else{
@@ -311,7 +412,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
     close(pb)
   }
   
-  if(!(ModelType == 1)){
+  if((calculate.VaR) & (!(ModelType == 1))){
     for(iter in 1:length(VaR.alpha)){
       model[,paste0('I',100*(1-VaR.alpha[iter]))] <- (model[,'rt'] < model[,paste0('VaR',100*(1-VaR.alpha[iter]))])
     }
@@ -345,7 +446,6 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, forecast.
   if(ModelType==1) vars <- c(vars,"shape")
   if(ModelType==2) vars <- c(vars,"xi","varphi","delta1","delta2","shape")
   if(LEVIER)       vars <- c(vars,"l","theta")
-  n.bootpred            <- 10000
   strt                  <- (T-forecast.length) - window.size
   
   if(is.null(cluster)){
@@ -527,8 +627,11 @@ g<-function(vector){
   
   if(!is.logical(VaR.test)){
     stop("summary.MDSVroll(): input VaR.test must be logical!")
+  }else if(!(object$calculate.VaR)){
+    print("summary.MDSVroll() WARNING: Unable to perform VaR.test because object$calculate.VaR = FALSE! set VaR.test to FALSE")
+    VaR.test<-FALSE
   }else if(object$ModelType == 1){
-    print("summary.MDSVroll() WARNING: VaR use only for log-returns! set VaR.test to FALSE")
+    print("summary.MDSVroll() WARNING: VaR is only for log-returns! set VaR.test to FALSE")
     VaR.test<-FALSE
   }
   

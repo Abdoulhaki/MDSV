@@ -5,7 +5,7 @@
 #' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
 #' @param para A vector of parameters use for the MDSV filtering on `data`. For more informations see Details. 
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
-#' @param LEVIER if `TRUE`, estime the MDSV model with leverage.
+#' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
 #' 
 #' @return A list consisting of:
 #' \itemize{
@@ -68,17 +68,17 @@
 #' @examples 
 #' \dontrun{
 #' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-#' data      <- data(sp500)  # Data loading
-#' N         <- 2           # Number of components
-#' K         <- 3           # Number of states
-#' ModelType <- 0           # Univariate log-returns
-#' LEVIER    <- FALSE       # No leverage effect
+#' data(sp500)        # Data loading
+#' N         <- 2     # Number of components
+#' K         <- 3     # Number of states
+#' ModelType <- 0     # Univariate log-returns
+#' LEVIER    <- FALSE # No leverage effect
 #' 
 #' # Model estimation
-#' out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
 #' # Model filtering
 #' para      <-out_fit$estimates # parameter
-#' out_filter<- MDSVfilter(K = K, N = N, data = donne, para = para, ModelType = ModelType, LEVIER = LEVIER)
+#' out_filter<- MDSVfilter(K = K, N = N, data = sp500, para = para, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out_filter)
 #' # Plot
@@ -86,17 +86,17 @@
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
-#' data      <- data(nasdaq)  # Data loading
-#' N         <- 3             # Number of components
-#' K         <- 3             # Number of states
-#' ModelType <- 2             # Joint log-returns and realized variances
-#' LEVIER    <- TRUE          # No leverage effect
+#' data(nasdaq)      # Data loading
+#' N         <- 3    # Number of components
+#' K         <- 3    # Number of states
+#' ModelType <- 2    # Joint log-returns and realized variances
+#' LEVIER    <- TRUE # No leverage effect
 #' 
 #' para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72, 
 #'               xi = -0.5, varphi = 0.93, delta1 = 0.93, delta2 = 0.04, shape = 2.10
 #'               l = 0.78, theta = 0.876)
 #' # Model filtering
-#' out       <- MDSVfilter(K = K, N = N,data = donne, para = para, ModelType = ModelType, LEVIER = LEVIER)
+#' out       <- MDSVfilter(K = K, N = N,data = nasdaq, para = para, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out)
 #' # Plot
@@ -109,13 +109,13 @@ MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
   if ( (!is.numeric(N)) || (!is.numeric(K)) ) {
     stop("MDSVfilter(): input N and K must be numeric!")
   }else if(!(N%%1==0) || !(K%%1==0)){
-    stop("MDSVfit(): input N and K must be integer!")
+    stop("MDSVfilter(): input N and K must be integer!")
   }
   
   if(!is.numeric(ModelType)) {
     stop("MDSVfilter(): input ModelType must be numeric!")
   }else if(!(ModelType %in% c(0,1,2))){
-    stop("MDSVfit(): input ModelType must be 0, 1 or 2!")
+    stop("MDSVfilter(): input ModelType must be 0, 1 or 2!")
   }
   
   if(!is.logical(LEVIER)) {

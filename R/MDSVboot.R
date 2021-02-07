@@ -45,14 +45,14 @@
 #' @examples 
 #' \dontrun{
 #' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-#' data      <- data(sp500)  # Data loading
-#' N         <- 2            # Number of components
-#' K         <- 3            # Number of states
-#' ModelType <- 0            # Univariate log-returns
-#' LEVIER    <- FALSE        # No leverage effect
+#' data(sp500)         # Data loading
+#' N         <- 2      # Number of components
+#' K         <- 3      # Number of states
+#' ModelType <- 0      # Univariate log-returns
+#' LEVIER    <- FALSE  # No leverage effect
 #' 
 #' # Model estimation
-#' out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
 #' # Model forecasting (no bootstrapp is need as no leverage)
 #' para      <-out_fit$estimates # parameter
 #' out       <- MDSVboot(fit = out_fit, n.ahead = 100, rseed = 125)
@@ -61,16 +61,16 @@
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
-#' data      <- data(nasdaq)  # Data loading
-#' N         <- 3             # Number of components
-#' K         <- 3             # Number of states
-#' ModelType <- 2             # Joint log-returns and realized variances
-#' LEVIER    <- TRUE          # No leverage effect
+#' data(nasdaq)       # Data loading
+#' N         <- 3     # Number of components
+#' K         <- 3     # Number of states
+#' ModelType <- 2     # Joint log-returns and realized variances
+#' LEVIER    <- TRUE  # No leverage effect
 #' 
 # Model estimation
-#' out_fit   <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' out_fit   <- MDSVfit(K = K, N = N, data = nasdaq, ModelType = ModelType, LEVIER = LEVIER)
 #' # Model bootstrap forecasting
-#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootstrap = 10000, rseed = 349)
+#' out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootpred = 10000, rseed = 349)
 #' # Summary
 #' summary(out)
 #' 
@@ -84,11 +84,14 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
   if ( (!is.numeric(n.ahead)) || (!is.numeric(n.bootpred)) ) {
     stop("MDSVboot(): inputs must be numeric!")
   }else if(!(n.ahead%%1==0) || !(n.bootpred%%1==0)){
-    stop("MDSVfit(): input n.ahead and n.bootpred must be integer!")
+    stop("MDSVboot(): input n.ahead and n.bootpred must be integer!")
   }
   
   if ((!is.numeric(rseed)) || is.na(rseed)) {
     print("MDSVboot() WARNING: input rseed must be numeric! rseed set to random")
+    rseed <- sample.int(.Machine$integer.max,1)
+  }else if(!(rseed%%1==0)){
+    print("MDSVboot() WARNING: input rseed must be an integer! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
   }
   

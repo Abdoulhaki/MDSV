@@ -4,7 +4,7 @@
 #' @param K An integer designing the number of states of each MDSV process component
 #' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
-#' @param LEVIER if `TRUE`, estime the MDSV model with leverage.
+#' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
 #' @param ... further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
 #' 
 #' @return A list consisting of:
@@ -45,14 +45,14 @@
 #' @examples 
 #' \dontrun{
 #' # MDSV(N=2,K=3) without leverage on univariate log-returns S&P500
-#' data      <- data(sp500)  # Data loading
-#' N         <- 2           # Number of components
-#' K         <- 3           # Number of states
-#' ModelType <- 0           # Univariate log-returns
-#' LEVIER    <- FALSE       # No leverage effect
+#' data(sp500)         # Data loading
+#' N         <- 2      # Number of components
+#' K         <- 3      # Number of states
+#' ModelType <- 0      # Univariate log-returns
+#' LEVIER    <- FALSE  # No leverage effect
 #' 
 #' # Model estimation
-#' out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out)
 #' # Plot
@@ -60,14 +60,14 @@
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
-#' data      <- data(nasdaq)  # Data loading
-#' N         <- 3             # Number of components
-#' K         <- 3             # Number of states
-#' ModelType <- 2             # Joint log-returns and realized variances
-#' LEVIER    <- TRUE          # No leverage effect
+#' data(nasdaq)      # Data loading
+#' N         <- 3    # Number of components
+#' K         <- 3    # Number of states
+#' ModelType <- 2    # Joint log-returns and realized variances
+#' LEVIER    <- TRUE # No leverage effect
 #' 
 #' # Model estimation
-#' out       <- MDSVfit(K = K, N = N, data = donne, ModelType = ModelType, LEVIER = LEVIER)
+#' out       <- MDSVfit(K = K, N = N, data = nasdaq, ModelType = ModelType, LEVIER = LEVIER)
 #' # Summary
 #' summary(out)
 #' # Plot
