@@ -66,7 +66,7 @@ out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = ModelType, LEVIER =
 # Summary
 summary(out)
 # Plot
-plot(out,c("des","nic"))
+plot(out,c("dis","nic"))
 
 
 # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ

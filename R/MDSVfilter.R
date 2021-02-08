@@ -375,7 +375,7 @@ qmist2n <- function(q,sigma,p){
   if(x$ModelType == "Joint log-return and realized variances") ModelType <- 2
   
   para      <- x$estimates
-  sig       <- sqrt(volatilityVector(para,K=x$K,N=x$K))
+  sig       <- sqrt(volatilityVector(para,K=x$K,N=x$N))
   LEVIER    <- x$LEVIER
   
   proba_lis <- x$smoothed_proba
@@ -411,8 +411,7 @@ qmist2n <- function(q,sigma,p){
   data        <- as.matrix(x$data)
   dates       <- x$dates
   
-  .pardefault <- par()
-  do.call("par", list(mar=c(6,6,4,4)))
+  .pardefault <- do.call("par", list(mar=c(6,6,4,4)))
   
   if(ModelType==0){
     layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2.3,2.3), respect = FALSE)

@@ -10,7 +10,7 @@ License: GPL-3 + file LICENSE
 URL: https://github.com/Abdoulhaki/MDSV
 LazyData: true
 Imports: Rcpp (>= 1.0.6), RcppArmadillo, RcppEigen
-LinkingTo: Rcpp, RcppArmadillo, RcppEigen
+LinkingTo: Rcpp, RcppArmadillo, RcppEigen, Rsolnp, graphics, mhsmm, foreach, doSNOW
 RoxygenNote: 7.1.1
 Suggests: 
     knitr,

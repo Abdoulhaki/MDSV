@@ -56,7 +56,7 @@
 #' # Summary
 #' summary(out)
 #' # Plot
-#' plot(out,c("des","nic"))
+#' plot(out,c("dis","nic"))
 #' 
 #' 
 #' # MDSV(N=3,K=3) with leverage on joint log-returns and realized variances NASDAQ
@@ -269,8 +269,8 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
     para        <- para[c("omega","a","b",names(para)[3:length(para)])]
   }
   
-  sig       <- sqrt(volatilityVector(para,K=x$K,N=x$K))
-  prob      <- probapi(para["omega"],K=x$K,N=x$K)
+  sig       <- sqrt(volatilityVector(para,K=x$K,N=x$N))
+  prob      <- probapi(para["omega"],K=x$K,N=x$N)
   
   x              <- list(ModelType   = x$ModelType,
                          N           = x$N,
