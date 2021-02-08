@@ -1,0 +1,47 @@
+---
+title: "MDSV: An R package for estimating and forecasting financial data with MDSV model"
+author: "Kassimou Abdoul Haki Maoude"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    citation_package: natbib
+    number_sections: true
+  bookdown::pdf_book:
+    citation_package: biblatex
+bibliography: ["References.bib", "Packages.bib"]
+biblio-style: "apalike"
+link-citations: true
+urlcolor: blue
+vignette: >
+  %\VignetteIndexEntry{MDSV_docx}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+
+
+# Model{#model}
+
+
+# Examples with exogenous network{#exo}
+
+```{r setup, echo = TRUE, eval = TRUE}
+library(MDSV)
+```
+
+## Data simulation{#exo.data}
+
+## Estimation
+
+## Monte Carlo Simulations
+
+# Examples with endogenous network{#endo}
+
+# Conclusion {#con}
+
+
