@@ -112,14 +112,14 @@ refit.every      <- 63           # Period to re-estimate the model
 refit.window     <- "recursive"  # No leverage effect
 calculate.VaR    <- TRUE
 VaR.alpha        <- c(0.01, 0.05, 0.1)
-cl               <- parallel::makeCluster(parallel::detectCores()[1]-1)
+cluster          <- parallel::makeCluster(parallel::detectCores()[1]-1)
 rseed            <- 125
 
 # rolling forecasts
 out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
             forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
             window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
-parallel::stopCluster(cl)
+parallel::stopCluster(cluster)
 # Summary
 summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
 # plot

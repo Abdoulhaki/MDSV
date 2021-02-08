@@ -77,14 +77,14 @@
 #' refit.window     <- "recursive"  # No leverage effect
 #' calculate.VaR    <- TRUE
 #' VaR.alpha        <- c(0.01, 0.05, 0.1)
-#' cl               <- parallel::makeCluster(parallel::detectCores()[1]-1)
+#' cluster          <- parallel::makeCluster(parallel::detectCores()[1]-1)
 #' rseed            <- 125
 #' 
 #' # rolling forecasts
 #' out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
 #'             forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
 #'             window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
-#' parallel::stopCluster(cl)
+#' parallel::stopCluster(cluster)
 #' # Summary
 #' summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
 #' # plot
@@ -473,7 +473,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       ech    <- data[strt:(T-forecast.length+t-1),]
       
       para <- unlist(model[t, vars])
-      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
+      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
       
       set.seed(rseed)
       
@@ -499,7 +499,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
                              Model_type = ModelType,
                              N          = N)
         if(!(ModelType==1)){
-          rt2                                   <- sim$`rt2`
+          rt2                                    <- sim$`rt2`
           model_prev[t,paste0("rt2p",1:n.ahead)] <- rt2[(ncol(rt2)-n.ahead+1):ncol(rt2)]
           
           if(ModelType==2){
@@ -543,7 +543,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       ech    <- data[strt:(T-forecast.length+t-1),]
               
       para <- unlist(model[t, vars])
-      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
+      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N,t=nrow(ech))
       
       set.seed(rseed)
       
@@ -583,7 +583,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }else{
         if(!(ModelType==2)){
           sim     <- f_sim(n.ahead,sig,pi_0,matP)
-          if(Model_type==0) {
+          if(ModelType==0) {
             model_prev[t,paste0("rt2p",1:n.ahead)]  <- sim$`rt2`
           }else{
             model_prev[t,paste0("rvtp",1:n.ahead)] <- sim$`rt2`
@@ -863,7 +863,7 @@ g<-function(vector){
     print(round(Y,3))
   }
   
-  cat("Marginal Loss Functions : \n")
+  cat("\n Marginal Loss Functions : \n")
   cat("------------------------- \n")
   H_range        <- x$Loss.horizon
   if(!(x$ModelType == 1)){
@@ -1041,7 +1041,7 @@ g<-function(vector){
                               col  = 'blue',
                               ...  = ...), x[-(1:17)])
       do.call("lines", tmp)
-      legend("topleft", legend=c("1.ahead forecast", "realized values"), col=c("red", "gray"), lty=1, cex=0.8)
+      legend("topleft", legend=c("1.ahead forecast", "realized values"), col=c("blue", "gray"), lty=1, cex=0.8)
     }
     
     if(!(ModelType==0)){
@@ -1065,7 +1065,7 @@ g<-function(vector){
                               ...  = ...), x[-(1:17)])
       do.call("lines", tmp)
       
-      legend("topleft", legend=c("1.ahead forecast", "realized values"), col=c("red", "gray"), lty=1, cex=0.8)
+      legend("topleft", legend=c("1.ahead forecast", "realized values"), col=c("blue", "gray"), lty=1, cex=0.8)
     }
     
     par(mfrow=c(1,1))
