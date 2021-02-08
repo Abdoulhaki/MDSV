@@ -81,9 +81,9 @@
 #' rseed            <- 125
 #' 
 #' # rolling forecasts
-#' out<-MDSVroll(N=N, K=K, data=data, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+#' out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
 #'             forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
-#'             calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
+#'             window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
 #' parallel::stopCluster(cl)
 #' # Summary
 #' summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
@@ -178,7 +178,8 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
   
   if ( (!is.null(window.size)) & (!is.numeric(window.size)) ) {
     stop("MDSVroll(): input window.size must be numeric or set to NULL!")
-  }else if(!(window.size%%1==0)){
+  }
+  if(is.numeric(window.size)) if(!(window.size%%1==0)){
     stop("MDSVfit(): input window.size must be integer!")
   }
   
@@ -336,7 +337,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     opts <- list(progress = progress)
     
       Y<- foreach(t=update_date[!(update_date==forecast.length)], .export=c("solnp"), 
-                .packages =c("Rcpp","RcppArmadillo","RcppEigen","progressr"), .combine = rbind, .options.snow = opts) %dopar% { 
+                .packages =c("Rcpp","RcppArmadillo","RcppEigen"), .combine = rbind, .options.snow = opts) %dopar% { 
 
       if(refit.window == "moving") strt <- (T-forecast.length) - window.size + t*refit.every
       ech    <- data[strt:(T-forecast.length+t),]

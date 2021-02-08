@@ -116,9 +116,9 @@ cl               <- parallel::makeCluster(parallel::detectCores()[1]-1)
 rseed            <- 125
 
 # rolling forecasts
-out<-MDSVroll(N=N, K=K, data=data, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
             forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
-            calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
+            window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
 parallel::stopCluster(cl)
 # Summary
 summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
