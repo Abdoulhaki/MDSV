@@ -295,7 +295,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }
       
       model[t+1,vars] <- round(para,5)
-      if(!(Model_type == 1)){
+      if(!(ModelType == 1)){
         l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rt"], Model_type = ModelType)
         
         pi_0 <- l$w_hat
@@ -318,8 +318,8 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       model[t+1,'AIC']            <- model[(t+1),"loglik"]-length(para)
       model[t+1,'BIC']            <- model[(t+1),"loglik"]-length(para)*log(nrow(ech))/2
       
-      if(Model_type == 2){
-        model[t+1,"Marg_loglik"]  <-l$Marg_loglik
+      if(ModelType == 2){
+        model[t+1,"Marg_loglik"]  <- l$Marg_loglik
         model[t+1,'AICm']         <- model[(t+1),"Marg_loglik"]-length(para)
         model[t+1,'BICm']         <- model[(t+1),"Marg_loglik"]-length(para)*log(nrow(ech))/2
       }
@@ -352,7 +352,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       para <- workNat(opt$pars,LEVIER=LEVIER,Model_type=ModelType)
        
      model[t+1,vars] <- round(para,5)
-     if(!(Model_type == 1)){
+     if(!(ModelType == 1)){
        l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rt"], Model_type = ModelType)
        
        pi_0 <- l$w_hat
@@ -374,7 +374,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
      model[t+1,'AIC']            <- model[(t+1),"loglik"]-length(para)
      model[t+1,'BIC']            <- model[(t+1),"loglik"]-length(para)*log(nrow(ech))/2
      
-     if(Model_type == 2){
+     if(ModelType == 2){
        model[t+1,"Marg_loglik"]  <-l$Marg_loglik
        model[t+1,'AICm']         <- model[(t+1),"Marg_loglik"]-length(para)
        model[t+1,'BICm']         <- model[(t+1),"Marg_loglik"]-length(para)*log(nrow(ech))/2
@@ -396,7 +396,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }
       
       model[t+1,vars] <- round(para,5)
-      if(!(Model_type == 1)){
+      if(!(ModelType == 1)){
         l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rt"], Model_type = ModelType)
         
         pi_0 <- l$w_hat
@@ -418,7 +418,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       model[t+1,'AIC']            <- model[(t+1),"loglik"]-length(para)
       model[t+1,'BIC']            <- model[(t+1),"loglik"]-length(para)*log(nrow(ech))/2
       
-      if(Model_type == 2){
+      if(ModelType == 2){
         model[t+1,"Marg_loglik"]  <- l$Marg_loglik
         model[t+1,'AICm']         <- model[(t+1),"Marg_loglik"]-length(para)
         model[t+1,'BICm']         <- model[(t+1),"Marg_loglik"]-length(para)*log(nrow(ech))/2
@@ -513,7 +513,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }else{
         if(!(ModelType==2)){
           sim     <- f_sim(n.ahead,sig,pi_0,matP)
-          if(Model_type==0) {
+          if(ModelType==0) {
             model_prev[t,paste0("rt2p",1:n.ahead)]  <- sim$`rt2`
           }else{
             model_prev[t,paste0("rvtp",1:n.ahead)] <- sim$`rt2`
@@ -863,7 +863,7 @@ g<-function(vector){
     print(round(Y,3))
   }
   
-  cat("\n Marginal Loss Functions : \n")
+  cat(paste0("\n", "Marginal Loss Functions : \n"))
   cat("------------------------- \n")
   H_range        <- x$Loss.horizon
   if(!(x$ModelType == 1)){
