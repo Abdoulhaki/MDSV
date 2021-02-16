@@ -80,7 +80,7 @@
 #' @export
 #' @importFrom mhsmm sim.mc
 MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
-  stopifnot(class(fit) == "MDSVfit")
+  stopifnot(class(fit) %in% c("MDSVfit","MDSVfilter"))
   
   if ( (!is.numeric(n.ahead)) || (!is.numeric(n.bootpred)) ) {
     stop("MDSVboot(): inputs must be numeric!")
@@ -166,7 +166,7 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
     if(!(ModelType==2)){
       sim     <- f_sim(n.ahead,sig,pi_0,matP)
       rvt     <- rt2 <- sim$`rt2`
-      if(Model_type==0) {
+      if(ModelType==0) {
         out   <- c(out,list(rt2 = rt2))
       }else{
         out   <- c(out,list(rvt = rvt))
@@ -277,7 +277,7 @@ f.present <- function(X,thr=100){
         rownames(rt2_sim) <- paste("t", 1:n.ahead, sep="+")
         
         cat(paste0("\n","Sigma (summary) : \n"))
-        print(head(round(rt2_sim,6), min(n.ahead, 10)))
+        print(head(round(sqrt(rt2_sim),6), min(n.ahead, 10)))
         if(n.ahead>10)  cat("......................... \n")
       }
     }
@@ -285,6 +285,25 @@ f.present <- function(X,thr=100){
     if(!(ModelType == 0)){
       rvt_sim <- f.present(X = x$rvt_sim, thr = n.ahead)
       rownames(rvt_sim) <- paste("t", 1:n.ahead, sep="+")
+      
+      if(ModelType == 2) cat("\n")
+      cat("Realized Variances (summary) : \n")
+      print(head(round(rvt_sim,6), min(n.ahead, 10)))
+      if(n.ahead>0)  cat("......................... \n")
+    }
+  }else{
+    if(!(ModelType == 1)){
+      rt_sim <- x$rt2
+      names(rt_sim) <- paste("t", 1:n.ahead, sep="+")
+      
+      cat("Sigma (summary) : \n")
+      print(head(round(sqrt(rt_sim),6), min(n.ahead, 10)))
+      if(n.ahead>10)  cat("......................... \n")
+    }
+    
+    if(!(ModelType == 0)){
+      rvt_sim <- x$rvt
+      names(rvt_sim) <- paste("t", 1:n.ahead, sep="+")
       
       if(ModelType == 2) cat("\n")
       cat("Realized Variances (summary) : \n")

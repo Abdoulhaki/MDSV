@@ -1,0 +1,273 @@
+---
+title: "MDSV: An R package for estimating and forecasting financial data with MDSV model"
+author: "Kassimou Abdoul Haki Maoude"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    citation_package: natbib
+    number_sections: true
+  bookdown::pdf_book:
+    citation_package: biblatex
+bibliography: ["References.bib"]
+biblio-style: "apalike"
+link-citations: true
+urlcolor: blue
+vignette: >
+  %\VignetteIndexEntry{MDSV_docx}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+
+Regime-switching processes are popular tools to interpret, model and forecast financial data. The Markov-switching multifractal (MSM) model of \cite{calve04} has proved to be a strong competitor to the GARCH class of models for modeling the volatility of returns. In this model, volatility dynamics are driven by a latent high-dimensional Markov chain constructed by multiplying independent two-state Markov chains. We propose the multifractal discrete stochastic volatility (MDSV) model as a generalization of the MSM process and of other related high-dimensional hidden Markov models \citep{flemi13, cordi14, augustyniak2019new}. Our model is intended to model financial returns and realized volatilities jointly or uniquely, and therefore also extends existing high-dimensional Markov-switching processes to the joint setting. Our approach consists in building a highdimensional Markov chain by the product of lower-dimensional Markov chains which have a discrete stochastic volatility representation.
+
+We also present an easy-to-use R package---named  **MDSV**---for implementing the model. This note is a supplement for the package manual. We provide examples with data from [Oxford-Man institute](https://realized.oxford-man.ox.ac.uk/). The package is located on GitHub at [github.com/Abdoulhaki/MDSV](https://github.com/Abdoulhaki/MDSV). All the results of the note can be replicated following the code provided.
+
+# Model{#model}
+
+Let $r_t$ and $RV_t$ denote, respectively, the demeaned log-return and realized variance of a financial asset from time $t-1$ to $t$, for $t=1,\ldots,T$. Our proposed MDSV model postulates that the univariate serie $\{r_t\}$ or $\{RV_t\}$ or the joint time series $\{ (r_t,RV_t) \}$ is driven by a MDSV process denoted by $\{V_t\}$. This process is a latent variance process constructed from the product of a high-dimensional Markov chain $\{ C_t \}$ governing volatility persistence and of a data-driven component $\{ L_t \}$ capturing the leverage effect, that is \[V_t = C_t L_t.\] To relate the univariate serie $r_t$ to this process, we assume that
+\begin{align}
+\label{eq:rt}
+r_t &= \sqrt{V_t}\epsilon_t\,,
+\end{align} 
+%
+where $\{\epsilon_t\}$ is a serially independent innovation processes with mean~0 and variance~1. For the univariate serie $RV_t$, we assume that
+\begin{align}
+\label{eq:RVt}
+RV_t &= V_t\eta_t\,,
+\end{align} 
+%
+where $\{\eta_t\}$ is a serially independent innovation processes with mean~1. In the case of the joint framework, to relate $(r_t, RV_t)$ to the latent process, we assume that
+%
+\begin{align}
+\label{eq:j1}
+r_t &= \sqrt{V_t}\epsilon_t, \\
+\label{eq:j2}
+\log RV_t &= \xi + \varphi \log V_t + \delta_1 \epsilon_t + \delta_2 \left(\epsilon_t^2-1\right) + \gamma\varepsilon_t,
+\end{align} 
+%
+where $\xi\in\mathbb{R}$, $\varphi\in\mathbb{R}$, $\delta_1\in\mathbb{R}$, $\delta_2\in\mathbb{R}$ and $\gamma\in(0,\infty)$ are parameters, and $\{\epsilon_t\}$ and $\{\varepsilon_t\}$ are mutually and serially independent innovation processes with mean~0 and variance~1.
+%
+
+## Volatility persistance component {#Ct}
+
+The Volatility persistance component $\{C_t\}$ is constructed from the product of $N$ independent Markov chains with dimension $K$, denoted by $\left\{C_t^{(i)}\right\}$, $i=1\dots,N$, that is,
+\begin{equation}
+	\label{eq:Ct}
+		C_t=\frac{\sigma^2}{c_0}\prod_{i=1}^{N}C_t^{(i)}\,,
+\end{equation}
+where $\sigma\in (0,\infty)$ is a parameter and the constant $c_0 = \mathbb{E}\left[\prod_{i=1}^{N}C_t^{(i)}\right] = \prod_{i=1}^{N}\mathbb{E}\left[C_t^{(i)}\right]$ is defined such that $\sigma^2 = \mathbb{E}[C_t]$.
+
+Each component $\left\{C_t^{(i)}\right\}\,,i=1,\ldots,N$ is a Markov chain with $K\times K$ transition matrix $\mathbf{P}^{(i)}$ defined by
+\begin{equation}
+\label{eq:Pi}
+\mathbf{P}^{(i)} = \phi^{(i)}\mathbf{I}_{K}+(1-\phi^{(i)})\mathbf{1}_{K}\boldsymbol{\pi}^{(i)\prime},
+\end{equation}
+where $\mathbf{I}_{K}$ is the $K\times K$ identity matrix, $\mathbf{1}_{K}$ is a vector of size $K$ composed of ones, $\phi^{(i)}\in[0,1)$ is a parameter, and $\boldsymbol{\pi}^{(i)}$ is a parameter vector of probabilities corresponding to the stationary distribution of $\left\{C_t^{(i)}\right\}$. The state space of $\left\{C_t^{(i)}\right\}$ is denoted by the parameter vector $\boldsymbol{\nu}^{(i)}$. 
+
+For tractability and to avoid over-parametrization, we further impose the following constraints on the model parameters, for $i=1,\ldots,N$, and $j=1,\dots,K$,
+\begin{align}
+\begin{split}
+\phi^{(i)} &=a^{b^{i-1}}\,,\\
+\boldsymbol{\nu}^{(i)}= \boldsymbol{\nu}^{(1)} & = \begin{pmatrix} \nu_{1}^{(1)}&\nu_{2}^{(1)}&\dots&\nu_{K}^{(1)} \end{pmatrix}^\prime\\
+\nu_{j}^{(1)} &= \nu_0\left(\frac{2-\nu_0}{\nu_0}\right)^{j-1},\quad  \\
+\boldsymbol{\pi}^{(i)} = \boldsymbol{\pi}^{(1)} & = (\pi_1^{(1)},\ldots,\pi_{K}^{(1)})', \\
+\pi_j & = {K-1\choose j-1} \omega^{j-1}(1-\omega)^{K-j}, \\
+\end{split}
+\end{align}
+in which $\nu_0 \in (0,1)$, $\omega \in (0,1)$, $a \in (0,1)$ and $b\in [1,+\infty)$.
+
+We write MDSV$(N,K)$ to designate the MDSV model with a Markov chain $\{C_t\}$ constructed from the product of $N$ Markov chains with dimension $K$. The state space of $\{C_t\}$, denoted by $\boldsymbol{\nu}$, has dimension $K^N$ and is given by
+\[ \boldsymbol{\nu} = \frac{\sigma^2}{c_0}\left[\otimes_{i=1}^{N}\left(\boldsymbol{\nu}^{(i)}\right)\right] = \frac{\sigma^2}{c_0}\left(\boldsymbol{\nu}^{(1)}\right)^{\otimes{N}}. \]
+The transition matrix of $\{C_t\}$, denoted by $\mathbf{P}$, is given by
+\[ \mathbf{P} = \otimes_{i=1}^{N}\left(\mathbf{P}^{(i)}\right). \]
+Finally, the stationary distribution of $\{C_t\}$, denoted by $\boldsymbol{\pi}$, is given by
+\[ \boldsymbol{\pi} = \otimes_{i=1}^{N} \left(\boldsymbol{\pi}^{(i)}\right)= \left(\boldsymbol{\pi}^{(1)}\right)^{\otimes{N}}. \]
+
+## Leverage effect component {#Lt}
+
+A process $\{L_t\}$ to capture a time-varying leverage effect is add in the latent volatility process $\{V_t\}$. This approach of capturing leverage effect is a very perfromant way introduced by ^[@augustyniak2019new]. The leverage effect is defined as : \[L_t = \prod_{i=1}^{N_L}\left(1+l_i\frac{|r_{t-i}|}{\sqrt{L_{t-i}}}\mathbf{1}_{\{r_{t-i}<0\}}\right)\,, \quad \text{ where } \quad l_i =  \theta_l^{i-1}l_1\, \, \text{ and } l_1 > 0\,, \theta_l\in [0,1]\,.
+\]
+This specfication of the leverage process is give the propriety to this component to be a predictable process as for each $t$, it value is fully determined by the $N_L$ previous obseved log-return (up to the date ${t-1}$). 
+
+Moreover, this specification has a nice interpretation. In fact a negative past log-return add an additional volatility of intensity related to magnitude of log-return and a parameter $l_i$ structured such as to give less and less importance to the most distant log-returns. 
+
+# Presentation of the package{#package}
+
+In this section, we present each function of the package and some examples to show how to use it. The package MDSV can be loaded as a common package in R.
+
+```{r, echo = TRUE, eval = TRUE}
+library(MDSV)
+```
+
+The parameters that specify a model in the contexte of MDSV package are : 
+\begin{itemize}
+  \item \texttt{N} : The number of components for the MDSV process.
+  \item \texttt{K} : The number of states of each MDSV process component.
+  \item \texttt{ModelType}	: An integer designing the type of model to be fit. \texttt{0} for univariate log-returns, \texttt{1} for univariate realized variances and \texttt{2} for joint log-return and realized variances.
+  \item \texttt{LEVIER} : A logical designing if the MDSV model take leverage effect into account or not.
+\end{itemize}
+
+## Fitting {#fit}
+
+The \texttt{MDSVfit} method fit the MDSV model on log-retruns and realized variances (uniquely or jointly). It takes the following arguments:
+
+```{r, echo = TRUE, eval = TRUE}
+args(MDSVfit)
+```
+
+The MDSV optimization routine set of feasible starting points which are used to initiate the MDSV recursion. The likelihood calculation is performed in C++ through the \texttt{Rcpp} package. The optimization is perform using the \texttt{solnp} solver of the \texttt{Rsolnp} package and additional options can be supply to the fonction. While fitting an univariate realized variances data, log-returns are required to add leverage effect. Information criterias $AIC$ and $BIC$ are computed using the formulas :
+
+\begin{itemize}
+  \item $AIC = \mathcal{L} - k\,,$
+  \item $BIC = \mathcal{L} - (k/2)*log(T)\,,$
+\end{itemize}
+
+where $\mathcal{L}$ is the log-likelihood, $k$ is the number of parameters and $T$ the number of observations in the dataset. The fitted object is of class \texttt{MDSVfit} which can be passed to a variety of other methods such as summary, plot, MDSVboot. The following examples illustrate its use, but the interested reader should
+consult the documentation on the methods available for the returned class.
+
+```{r, echo = TRUE, eval = TRUE}
+data(sp500)         
+N         <- 2
+K         <- 3
+LEVIER    <- TRUE
+
+# Model estimation : univariate log-returns (ModelType = 0)
+out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 0, LEVIER = LEVIER)
+# Summary
+summary(out)
+# Plot
+plot(out,c("dis"))
+
+# Model estimation : univariate realized variances (ModelType = 1) without leverage
+out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 1, LEVIER = FALSE)
+# Summary
+summary(out)
+# Plot
+plot(out,c("nic"))
+
+# Model estimation : joint model (ModelType = 2)
+out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 2, LEVIER = LEVIER)
+# Summary
+summary(out)
+# Plot
+plot(out,c("dis","nic"))
+
+```
+
+## Filtering {#filtering}
+
+Sometimes it is desirable to simply filter a set of data with a predefined set of parameters. This
+may for example be the case when new data has arrived and one might not wish to re-fit. The \texttt{MDSVfilter} method does exactly that, filter the MDSV model on log-retruns and realized variances (uniquely or jointly) data with a predefined set of parameters. The examples which follow explain how:
+
+```{r, echo = TRUE, eval = TRUE}
+data(sp500)  
+N         <- 3
+K         <- 3
+LEVIER    <- TRUE
+para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72,
+               l = 0.78, theta = 0.876)
+
+# Model filtering : univariate log-returns (ModelType = 0)
+out       <- MDSVfilter(K = K, N = N,data = sp500, para = para, ModelType = 0, LEVIER = LEVIER)
+# Summary
+summary(out)
+# Plot
+plot(out)
+
+para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72, shape = 2.10)
+
+# Model filtering : univariate realized variances (ModelType = 1) without leverage
+out       <- MDSVfilter(K = K, N = N, data = sp500, para = para, ModelType = 1, LEVIER = FALSE)
+# Summary
+summary(out)
+# Plot
+plot(out)
+
+para      <- c(omega = 0.52, a = 0.99, b = 2.77, sigma = 1.95, v0 = 0.72, 
+              xi = -0.5, varphi = 0.93, delta1 = 0.93, delta2 = 0.04, shape = 2.10,
+              l = 0.78, theta = 0.876)
+
+# Model filtering : joint model (ModelType = 2)
+out       <- MDSVfilter(K = K, N = N,data = sp500, para = para, ModelType = 2, LEVIER = LEVIER)
+# Summary
+summary(out)
+# Plot
+plot(out)
+```
+
+The returned object is of class \texttt{uGARCHfilter} and shares many of the methods as the uGARCHfit
+class. Additional arguments to the function are explained in the documentation. 
+
+## Forecasting and the MDSV Bootstrap {#bootstrap}
+
+When the MDSV model does not take leverage effect into account, forecasting techniques developed by \cite{hamilton1994d} are applicable in MDSV framework. But, when the MDSV model takes leverage effect into account, it is not possible to have analytic formula for $h>1$ ahead forecasts. Thoses forecasts are then performed through bootstrap simulations. The following examples provides for a brief look at the \texttt{MDSVboot} method, but the interested reader should consult the more comprehensive examples in the inst folder of the package.
+
+```{r, echo = TRUE, eval = TRUE}
+data(sp500)
+N         <- 3
+K         <- 3
+LEVIER    <- TRUE
+
+# Model forecasting : univariate log-returns (ModelType = 0) without leverage
+out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = 0, LEVIER = FALSE)
+out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootpred = 10000, rseed = 349)
+# Summary
+summary(out)
+
+# Model forecasting : univariate realized variances (ModelType = 1) without leverage
+out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = 1, LEVIER = FALSE)
+out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootpred = 10000, rseed = 349)
+# Summary
+summary(out)
+
+# Model bootstrap forecasting : joint model (ModelType = 2) with leverage
+out_fit   <- MDSVfit(K = K, N = N, data = sp500, ModelType = 2, LEVIER = LEVIER)
+out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootpred = 10000, rseed = 349)
+# Summary
+summary(out)
+
+```
+
+## Rolling Estimation {#rolling}
+
+The \texttt{MDSVroll} method allows to perform a rolling estimation and forecasting of a model/dataset combination, optionally returning the VaR at specified levels. More importantly, the \texttt{MDSVroll} method present the forecasting performance of the model by computing the RMSE, MAE and QLIK loss functions \citetext{see \citealp{patton2011volatility}}. The following example illustrates the use of the method where use is also made of the parallel functionality and run on 7 cores. The \texttt{MDSVroll} object returned  can be passed to the plot function. Additional methods, and more importantly extractor functions can be found in the documentation. As the \texttt{MDSVroll} method could take a certain time to execute, the package perform a progression bar to inform about the evolution. 
+
+```{r, echo = TRUE, eval = TRUE}
+data(sp500)
+N                <- 2
+K                <- 3
+ModelType        <- 2
+LEVIER           <- FALSE
+n.ahead          <- 100
+forecast.length  <- 756
+refit.every      <- 63
+refit.window     <- "recursive"
+calculate.VaR    <- TRUE
+VaR.alpha        <- c(0.01, 0.05, 0.1)
+cluster          <- parallel::makeCluster(7)
+rseed            <- 125
+
+# rolling forecasts
+out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+              forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
+              window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, 
+              rseed = rseed)
+
+parallel::stopCluster(cluster)
+# Summary
+summary(out, VaR.test=TRUE, Loss.horizon = c(1,5,10,25,50,75,100), Loss.window = 756)
+# plot
+plot(out, plot.type=c("VaR","sigma","dens"))
+
+```
+
+# Conclusion {#con}
+
+This paper provides technical details on the package **MDSV**. It shows with simple and practical examples how to use the package through each of its functions.
+
