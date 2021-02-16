@@ -838,6 +838,7 @@ g<-function(vector){
     colnames(Y)    <- H_range
     
     print(round(Y,3))
+    x<-c(x,list(Loss_functions_R=Y))
   }
   if(!(x$ModelType == 0)){
     if(x$ModelType == 2) cat("\n")
@@ -861,6 +862,7 @@ g<-function(vector){
     colnames(Y)    <- H_range
     
     print(round(Y,3))
+    x<-c(x,list(Loss_functions_RV=Y))
   }
   
   cat(paste0("\n", "Marginal Loss Functions : \n"))
@@ -886,6 +888,7 @@ g<-function(vector){
     colnames(Y)    <- H_range
     
     print(round(Y,3))
+    x<-c(x,list(Loss_functions_marg_R=Y))
   }
   if(!(x$ModelType == 0)){
     if(x$ModelType == 2) cat("\n")
@@ -907,11 +910,14 @@ g<-function(vector){
     colnames(Y)    <- H_range
     
     print(round(Y,3))
+    x<-c(x,list(Loss_functions_marg_RV=Y))
   }
   
   if(x$VaR.test){
     cat(paste0("\n","VaR Tests \n"))
     VaR.alpha <- x$VaR.alpha
+    LR.uc_vec <- LR.cc_vec <- LR.ind_vec <- NULL
+    p.uc_vec  <- p.cc_vec  <- p.ind_vec  <- NULL
     for(iter in 1:length(VaR.alpha)){
       cat("------------------------------------------------- \n")
       viol      <- sum(x$estimates[,paste0('I',100*(1-VaR.alpha[iter]))])
@@ -957,8 +963,22 @@ g<-function(vector){
       cat(paste0("LR.cc Critical     : ",round(qchisq(1-VaR.alpha[iter],2),3),"\n"))
       cat(paste0("LR.cc p-value      : ",round(1-pchisq(LR.ind+LR.uc,2),3),"\n"))
       cat(paste0("Reject Null        : ",decision,"\n\n"))
+      
+      LR.uc_vec <- c(LR.uc_vec,LR.uc)
+      LR.cc_vec <- c(LR.cc_vec,LR.uc+LR.ind)
+      LR.ind_vec <- c(LR.ind_vec,LR.ind)
+      p.uc_vec <- c(p.uc_vec,1-pchisq(LR.uc,1))
+      p.cc_vec <- c(p.cc_vec,1-pchisq(LR.uc+LR.ind,2))
+      p.ind_vec <- c(p.ind_vec,1-pchisq(LR.ind,1))
     }
-    
+    names(LR.uc_vec) <- names(LR.cc_vec) <- names(LR.ind_vec) <- paste(100*(1-VaR.alpha), "%")
+    names(p.uc_vec)  <- names(p.cc_vec)  <- names(p.ind_vec) <- paste(100*(1-VaR.alpha), "%")
+    x<-c(x,list(LR.uc  = LR.uc_vec,
+                LR.ind = LR.ind_vec,
+                LR.cc  = LR.cc_vec,
+                p.uc   = p.uc_vec,
+                p.ind  = p.ind_vec,
+                p.cc   = p.cc_vec))
   }
   
   invisible(x)
@@ -1020,7 +1040,6 @@ g<-function(vector){
   plot.type <- x$plot.type
   
   if("sigma" %in% plot.type){
-    if(ModelType==2) par(mfrow=c(2,1))
     if(!(ModelType==1)){
       ylim <- c(min((Prev[,"rt"])^2,Prev[,"rt2p1"])-0.25,
                 max(c((Prev[,"rt"])^2,Prev[,"rt2p1"])+0.75))
@@ -1045,8 +1064,8 @@ g<-function(vector){
     }
     
     if(!(ModelType==0)){
-      ylim <- c(min((Prev[,"rvt"])^2,Prev[,"rvtp1"])-0.25,
-                max(c((Prev[,"rvt"])^2,Prev[,"rvtp1"])+0.75))
+      ylim <- c(min(Prev[,"rvt"],Prev[,"rvtp1"])-0.25,
+                max(c(Prev[,"rvt"],Prev[,"rvtp1"])+0.75))
       
       tmp           <- c(list(x = Prev[,"date"],
                               y = Prev[,"rvt"],
