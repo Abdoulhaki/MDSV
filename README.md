@@ -20,5 +20,5 @@ Once the installation is done, **MDSV** can be loaded as a common package in [**
 library(MDSV)
 ```
 ### How to use MDSV
-I provide a [vignette](https://nbviewer.jupyter.org/github/Abdoulhaki/MDSV/blob/master/doc/MDSV_docx.pdf) that fully documents the package through simple and practical examples. Moreover, each function of the package has a help page accessible using `?name-of-the-function`. -->
+I provide a [vignette](https://nbviewer.jupyter.org/github/Abdoulhaki/MDSV/blob/master/doc/MDSV_docx.pdf) that fully documents the package through simple and practical examples. Moreover, each function of the package has a help page accessible using `?name-of-the-function`.
 
