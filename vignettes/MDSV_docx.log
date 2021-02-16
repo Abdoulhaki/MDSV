@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2021.1.27)  16 FEB 2021 12:00
+=======
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2021.1.27)  16 FEB 2021 11:25
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 entering extended mode
 **./MDSV_docx.tex
 (MDSV_docx.tex
@@ -516,18 +520,32 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 
 Package amsmath Warning: Foreign command \atopwithdelims;
 (amsmath)                \frac or \genfrac should be used instead
+<<<<<<< HEAD
 (amsmath)                 on input line 222.
 
 [2]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
 64.
+=======
+(amsmath)                 on input line 218.
+
+[2]
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
+60.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (C:\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
+<<<<<<< HEAD
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 265.
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
 73.
+=======
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 261.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
+69.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (C:\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [3]
@@ -537,7 +555,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-4-1.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-4-1.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-4-1.pdf  us
+<<<<<<< HEAD
 ed on input line 366.
+=======
+ed on input line 362.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [4] [5 <./MDSV_docx_files/figure-latex/unnamed-chunk-4-1.pdf>]
 <MDSV_docx_files/figure-latex/unnamed-chunk-4-2.pdf, id=93, 469.755pt x 325.215
@@ -546,7 +568,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-4-2.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-4-2.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-4-2.pdf  us
+<<<<<<< HEAD
 ed on input line 410.
+=======
+ed on input line 406.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [6 <./MDSV_docx_files/figure-latex/unnamed-chunk-4-2.pdf>]
 <MDSV_docx_files/figure-latex/unnamed-chunk-4-3.pdf, id=104, 469.755pt x 325.21
@@ -555,7 +581,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-4-3.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-4-3.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-4-3.pdf  us
+<<<<<<< HEAD
 ed on input line 460.
+=======
+ed on input line 456.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [7 <./MDSV_docx_files/figure-latex/unnamed-chunk-4-3.pdf>]
 <MDSV_docx_files/figure-latex/unnamed-chunk-5-1.pdf, id=118, 469.755pt x 325.21
@@ -564,7 +594,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-5-1.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-5-1.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-5-1.pdf  us
+<<<<<<< HEAD
 ed on input line 527.
+=======
+ed on input line 523.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [8] [9 <./MDSV_docx_files/figure-latex/unnamed-chunk-5-1.pdf>]
 <MDSV_docx_files/figure-latex/unnamed-chunk-5-2.pdf, id=133, 469.755pt x 325.21
@@ -573,7 +607,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-5-2.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-5-2.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-5-2.pdf  us
+<<<<<<< HEAD
 ed on input line 573.
+=======
+ed on input line 569.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [10 <./MDSV_docx_files/figure-latex/unnamed-chunk-5-2.pdf>]
 <MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf, id=144, 469.755pt x 325.21
@@ -582,39 +620,66 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf  us
+<<<<<<< HEAD
 ed on input line 633.
+=======
+ed on input line 629.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [11]
 
 Package natbib Warning: Citation `hamilton1994d' on page 12 undefined on input 
+<<<<<<< HEAD
 line 643.
 
 [12 <./MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf>]
 Overfull \hbox (13.24358pt too wide) in paragraph at lines 681--681
+=======
+line 639.
+
+[12 <./MDSV_docx_files/figure-latex/unnamed-chunk-5-3.pdf>]
+Overfull \hbox (13.24358pt too wide) in paragraph at lines 677--677
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []\T1/lmtt/m/n/10 ##      t+1      t+2      t+3      t+4      t+5      t+6     
  t+7      t+8      t+9     t+10[] 
  []
 
 
+<<<<<<< HEAD
 Overfull \hbox (13.24358pt too wide) in paragraph at lines 681--681
+=======
+Overfull \hbox (13.24358pt too wide) in paragraph at lines 677--677
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []\T1/lmtt/m/n/10 ## 1.214750 1.213644 1.212619 1.211670 1.210794 1.209988 1.20
 9249 1.208573 1.207959 1.207403[] 
  []
 
 
+<<<<<<< HEAD
 Overfull \hbox (13.24358pt too wide) in paragraph at lines 708--708
+=======
+Overfull \hbox (13.24358pt too wide) in paragraph at lines 704--704
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []\T1/lmtt/m/n/10 ##      t+1      t+2      t+3      t+4      t+5      t+6     
  t+7      t+8      t+9     t+10[] 
  []
 
 
+<<<<<<< HEAD
 Overfull \hbox (13.24358pt too wide) in paragraph at lines 708--708
+=======
+Overfull \hbox (13.24358pt too wide) in paragraph at lines 704--704
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []\T1/lmtt/m/n/10 ## 0.433671 0.488964 0.530670 0.561927 0.585149 0.602200 0.61
 4514 0.623197 0.629102 0.632885[] 
  []
 
 [13]
+<<<<<<< HEAD
 Overfull \hbox (15925.94733pt too wide) in paragraph at lines 807--807
+=======
+Overfull \hbox (15925.94733pt too wide) in paragraph at lines 803--803
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []\T1/lmtt/m/n/10 ##   |                                                       
                                                                 |              
                                                                                
@@ -664,7 +729,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-1.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-1.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-1.pdf  us
+<<<<<<< HEAD
 ed on input line 954.
+=======
+ed on input line 950.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 <MDSV_docx_files/figure-latex/unnamed-chunk-7-2.pdf, id=184, 469.755pt x 325.21
 5pt>
@@ -672,7 +741,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-2.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-2.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-2.pdf  us
+<<<<<<< HEAD
 ed on input line 955.
+=======
+ed on input line 951.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 <MDSV_docx_files/figure-latex/unnamed-chunk-7-3.pdf, id=185, 469.755pt x 325.21
 5pt>
@@ -680,7 +753,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-3.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-3.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-3.pdf  us
+<<<<<<< HEAD
 ed on input line 956.
+=======
+ed on input line 952.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 <MDSV_docx_files/figure-latex/unnamed-chunk-7-4.pdf, id=186, 469.755pt x 325.21
 5pt>
@@ -688,7 +765,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-4.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-4.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-4.pdf  us
+<<<<<<< HEAD
 ed on input line 957.
+=======
+ed on input line 953.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 <MDSV_docx_files/figure-latex/unnamed-chunk-7-5.pdf, id=187, 469.755pt x 325.21
 5pt>
@@ -696,7 +777,11 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-5.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-5.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-5.pdf  us
+<<<<<<< HEAD
 ed on input line 958.
+=======
+ed on input line 954.
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 <MDSV_docx_files/figure-latex/unnamed-chunk-7-6.pdf, id=188, 469.755pt x 325.21
 5pt>
@@ -704,30 +789,53 @@ File: MDSV_docx_files/figure-latex/unnamed-chunk-7-6.pdf Graphic file (type pdf
 )
 <use MDSV_docx_files/figure-latex/unnamed-chunk-7-6.pdf>
 Package pdftex.def Info: MDSV_docx_files/figure-latex/unnamed-chunk-7-6.pdf  us
+<<<<<<< HEAD
 ed on input line 959.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
 Underfull \hbox (badness 10000) in paragraph at lines 954--960
+=======
+ed on input line 955.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 950--956
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 [][]
  []
 
 
+<<<<<<< HEAD
 Underfull \hbox (badness 10000) in paragraph at lines 954--960
+=======
+Underfull \hbox (badness 10000) in paragraph at lines 950--956
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []
  []
 
 
+<<<<<<< HEAD
 Underfull \hbox (badness 10000) in paragraph at lines 954--960
+=======
+Underfull \hbox (badness 10000) in paragraph at lines 950--956
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []
  []
 
 
+<<<<<<< HEAD
 Underfull \hbox (badness 10000) in paragraph at lines 954--960
+=======
+Underfull \hbox (badness 10000) in paragraph at lines 950--956
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []
  []
 
 
+<<<<<<< HEAD
 Underfull \hbox (badness 10000) in paragraph at lines 954--960
+=======
+Underfull \hbox (badness 10000) in paragraph at lines 950--956
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 []
  []
 
@@ -741,11 +849,19 @@ Package natbib Warning: There were undefined citations.
 
 [23 <./MDSV_docx_files/figure-latex/unnamed-chunk-7-6.pdf>] (MDSV_docx.aux) ) 
 Here is how much of TeX's memory you used:
+<<<<<<< HEAD
  14154 strings out of 479623
  205573 string characters out of 2881629
  1253265 words of memory out of 3000000
  30866 multiletter control sequences out of 15000+200000
  488475 words of font info for 150 fonts, out of 3000000 for 9000
+=======
+ 14158 strings out of 479623
+ 205617 string characters out of 2881629
+ 1253265 words of memory out of 3000000
+ 30866 multiletter control sequences out of 15000+200000
+ 488641 words of font info for 152 fonts, out of 3000000 for 9000
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
  1141 hyphenation exceptions out of 8191
  85i,20n,88p,46102b,474s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C
@@ -765,7 +881,11 @@ iKTeX/fonts/type1/public/lm/lmsy5.pfb><C:/MiKTeX/fonts/type1/public/lm/lmsy7.pf
 b><C:/MiKTeX/fonts/type1/public/lm/lmtk10.pfb><C:/MiKTeX/fonts/type1/public/lm/
 lmtt10.pfb><C:/MiKTeX/fonts/type1/public/lm/lmtti10.pfb><C:/MiKTeX/fonts/type1/
 public/amsfonts/symbols/msbm10.pfb>
+<<<<<<< HEAD
 Output written on MDSV_docx.pdf (23 pages, 856694 bytes).
+=======
+Output written on MDSV_docx.pdf (23 pages, 856323 bytes).
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 PDF statistics:
  381 PDF objects out of 1000 (max. 8388607)
  58 named destinations out of 1000 (max. 500000)

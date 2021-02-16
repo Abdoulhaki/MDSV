@@ -35,21 +35,38 @@ Let $r_t$ and $RV_t$ denote, respectively, the demeaned log-return and realized 
 \label{eq:rt}
 r_t &= \sqrt{V_t}\epsilon_t\,,
 \end{align} 
+<<<<<<< HEAD
 
 where $\{\epsilon_t\}$ is a serially independent normal innovation processes with mean~0 and variance~1. For the univariate serie $RV_t$, we assume that
+=======
+%
+where $\{\epsilon_t\}$ is a serially independent innovation processes with mean~0 and variance~1. For the univariate serie $RV_t$, we assume that
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 \begin{align}
 \label{eq:RVt}
 RV_t &= V_t\eta_t\,,
 \end{align} 
+<<<<<<< HEAD
 where $\{\eta_t\}$ is a serially independent gamma innovation processes with mean~1. In the case of the joint framework, to relate $(r_t, RV_t)$ to the latent process, we assume that
 
+=======
+%
+where $\{\eta_t\}$ is a serially independent innovation processes with mean~1. In the case of the joint framework, to relate $(r_t, RV_t)$ to the latent process, we assume that
+%
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 \begin{align}
 \label{eq:j1}
 r_t &= \sqrt{V_t}\epsilon_t, \\
 \label{eq:j2}
 \log RV_t &= \xi + \varphi \log V_t + \delta_1 \epsilon_t + \delta_2 \left(\epsilon_t^2-1\right) + \gamma\varepsilon_t,
 \end{align} 
+<<<<<<< HEAD
 where $\xi\in\mathbb{R}$, $\varphi\in\mathbb{R}$, $\delta_1\in\mathbb{R}$, $\delta_2\in\mathbb{R}$ and $\gamma\in(0,\infty)$ are parameters, and $\{\epsilon_t\}$ and $\{\varepsilon_t\}$ are mutually and serially independent normal innovation processes with mean~0 and variance~1.
+=======
+%
+where $\xi\in\mathbb{R}$, $\varphi\in\mathbb{R}$, $\delta_1\in\mathbb{R}$, $\delta_2\in\mathbb{R}$ and $\gamma\in(0,\infty)$ are parameters, and $\{\epsilon_t\}$ and $\{\varepsilon_t\}$ are mutually and serially independent innovation processes with mean~0 and variance~1.
+%
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 
 ## Volatility persistance component {#Ct}
 
@@ -252,9 +269,15 @@ rseed            <- 125
 
 # rolling forecasts
 out<-MDSVroll(N=N, K=K, data=sp500, ModelType=ModelType, LEVIER=LEVIER, n.ahead = n.ahead, 
+<<<<<<< HEAD
               forecast.length = forecast.length, refit.every = refit.every, 
               refit.window = refit.window, window.size=NULL,calculate.VaR = calculate.VaR,
               VaR.alpha = VaR.alpha, cluster = cluster, rseed = rseed)
+=======
+              forecast.length = forecast.length, refit.every = refit.every, refit.window = refit.window, 
+              window.size=NULL,calculate.VaR = calculate.VaR, VaR.alpha = VaR.alpha, cluster = cluster, 
+              rseed = rseed)
+>>>>>>> 9b1ee17d85fb38a5d911dc77743ba37e597c1dae
 
 parallel::stopCluster(cluster)
 # Summary
