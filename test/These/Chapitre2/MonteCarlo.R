@@ -2,10 +2,10 @@
 #Data input
 #-------------------------------------------------------------------------------
 if(!require(MDSV)){install.packages("MDSV")}; library(MDSV)
-#if(!require(mhsmm)){install.packages("mhsmm")}; library(mhsmm)
-#if(!require(Rsolnp)){install.packages("Rsolnp")}; library(Rsolnp)
-#if(!require(parallel)){install.packages("parallel")}; library(parallel)
-#if(!require(doSNOW)){install.packages("doSNOW")}; library(doSNOW)
+if(!require(mhsmm)){install.packages("mhsmm")}; library(mhsmm)
+if(!require(Rsolnp)){install.packages("Rsolnp")}; library(Rsolnp)
+if(!require(parallel)){install.packages("parallel")}; library(parallel)
+if(!require(doSNOW)){install.packages("doSNOW")}; library(doSNOW)
 
 # Loading of functions code
 path<-"C:/Users/DellPC/Dropbox/Abdoul/These/Article1/Code/MDSV/MonteCarlo"
@@ -52,7 +52,6 @@ colRMSE <- function(x,m, na.rm=TRUE) {
 }
 
 
-
 # Setting of parameters
 ctrl <- list(TOL=1e-15, trace=0) #optimization parameter
 
@@ -66,17 +65,17 @@ cl <- makeCluster(cores[1]-1) #not to overload your computer
 
 #### PANEL A
 
-model_extern <- expand.grid(N_D=c(10),N=c(2),sigma=sigma,a=a,b=b,omega=c(0.2,0.5,0.8),v0=c(0.5,0.8),T=c(2500,5000,10000),Time=0)
+model_extern <- expand.grid(K=c(10),N=c(2),sigma=sigma,a=a,b=b,omega=c(0.2,0.5,0.8),v0=c(0.5,0.8),T=c(2500,5000,10000),Time=0)
 
 for(ij in 1:nrow(model_extern)){
 
   Time1<-Sys.time()
   para <- c(model_extern[ij,"omega"],model_extern[ij,"a"],model_extern[ij,"b"],model_extern[ij,"sigma"],model_extern[ij,"v0"])
   N <- model_extern[ij,"N"]
-  N_D <- model_extern[ij,"N_D"]
-  v<-volatilityVector(para,N_D,N)
-  MatrixP<-P(para,N_D,N)
-  stationnaryDist<-probapi(model_extern[ij,"omega"],N_D,N)
+  K <- model_extern[ij,"K"]
+  v<-volatilityVector(para,K,N)
+  MatrixP<-P(para,K,N)
+  stationnaryDist<-probapi(model_extern[ij,"omega"],K,N)
   T1<-model_extern[ij,"T"]
   
   LEVIER<-FALSE
@@ -97,7 +96,7 @@ for(ij in 1:nrow(model_extern)){
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
   
-  model<-data.frame(N=1,LEVIER=FALSE,N_D=N_D,N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
+  model<-data.frame(N=1,LEVIER=FALSE,K=K,N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
   
   Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("Rcpp","RcppArmadillo","RcppEigen"),
              .noexport = c("natWork","workNat","logLik"), .options.snow = opts) %dopar% {
@@ -105,7 +104,7 @@ for(ij in 1:nrow(model_extern)){
        sourceCpp("MDSV_r.cpp")
        X<-rnorm(T1,0,sqrt(v[sim.mc(stationnaryDist,MatrixP,T1)]))
        
-       opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,N_D=N_D,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+       opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
        
        if(!is(opt,"try-error")){
          vars<-c("omega","a","b","sigma","v0")
@@ -134,22 +133,22 @@ for(ij in 1:nrow(model_extern)){
   
   model_extern$Time[ij]<-Sys.time()-Time1
   
-  write.csv(Y, paste0(filename,"_N_D_",N_D,"_N_",N,".csv"), row.names=FALSE)
+  write.csv(Y, paste0(filename,"_N_D_",K,"_N_",N,".csv"), row.names=FALSE)
 }
 
 #### PANEL B
 
-model_extern <- expand.grid(N_D=c(2),N=c(8),sigma=sigma,a=a,b=b,omega=c(0.2,0.5,0.8),v0=c(0.5,0.8),T=c(2500,5000,10000),Time=0)
+model_extern <- expand.grid(K=c(2),N=c(8),sigma=sigma,a=a,b=b,omega=c(0.2,0.5,0.8),v0=c(0.5,0.8),T=c(2500,5000,10000),Time=0)
 
 for(ij in 1:nrow(model_extern)){
   
   Time1<-Sys.time()
   para <- c(model_extern[ij,"omega"],model_extern[ij,"a"],model_extern[ij,"b"],model_extern[ij,"sigma"],model_extern[ij,"v0"])
   N <- model_extern[ij,"N"]
-  N_D <- model_extern[ij,"N_D"]
-  v<-volatilityVector(para,N_D,N)
-  MatrixP<-P(para,N_D,N)
-  stationnaryDist<-probapi(model_extern[ij,"omega"],N_D,N)
+  K <- model_extern[ij,"K"]
+  v<-volatilityVector(para,K,N)
+  MatrixP<-P(para,K,N)
+  stationnaryDist<-probapi(model_extern[ij,"omega"],K,N)
   T1<-model_extern[ij,"T"]
   
   LEVIER<-FALSE
@@ -170,7 +169,7 @@ for(ij in 1:nrow(model_extern)){
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
   
-  model<-data.frame(N=1,LEVIER=FALSE,N_D=N_D,N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
+  model<-data.frame(N=1,LEVIER=FALSE,K=K,N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
   
   Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("Rcpp","RcppArmadillo","RcppEigen"),
              .noexport = c("natWork","workNat","logLik"), .options.snow = opts) %dopar% {
@@ -178,7 +177,7 @@ for(ij in 1:nrow(model_extern)){
                sourceCpp("MDSV_r.cpp")
                X<-rnorm(T1,0,sqrt(v[sim.mc(stationnaryDist,MatrixP,T1)]))
                
-               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,N_D=N_D,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
                
                if(!is(opt,"try-error")){
                  vars<-c("omega","a","b","sigma","v0")
@@ -207,7 +206,7 @@ for(ij in 1:nrow(model_extern)){
   
   model_extern$Time[ij]<-Sys.time()-Time1
   
-  write.csv(Y, paste0(filename,"_N_D_",N_D,"_N_",N,".csv"), row.names=FALSE)
+  write.csv(Y, paste0(filename,"_N_D_",K,"_N_",N,".csv"), row.names=FALSE)
 }
 
 
@@ -223,8 +222,8 @@ rownames(X)<-c("v0","FSSEv0","RMSEv0","sigma","FSSEsig","RMSEsig","a","FSSEa","R
 names(X)<-S$Name
 filename<-files.all[1]
 
-N_D<-as.numeric(sub("\\_.*", "",sub(".*MonteCarlo1_10_N_D_", "", filename)))
-N<-as.numeric(sub("\\..*", "",sub(paste0(".*MonteCarlo1_10_N_D_",N_D,"_N_"), "", filename)))
+K<-as.numeric(sub("\\_.*", "",sub(".*MonteCarlo1_10_N_D_", "", filename)))
+N<-as.numeric(sub("\\..*", "",sub(paste0(".*MonteCarlo1_10_N_D_",K,"_N_"), "", filename)))
 
 for(filename in files.all){
   out<-read.csv(filename)
@@ -244,7 +243,7 @@ View(X[,index])
 abs(X[c(1,4,7,10,13),16]-c(0.8,1,0.95,3,0.2))
 abs(X[c(1,4,7,10,13),10]-c(0.8,1,0.95,3,0.2))
 
-write.table(X[,index], paste0("MONTECARLO_N_D_",N_D,"_N_",N,".csv"), sep = ";")
+write.table(X[,index], paste0("MONTECARLO_N_D_",K,"_N_",N,".csv"), sep = ";")
 
 
 # Setting of parameters
@@ -254,15 +253,15 @@ b <- 3
 omega <- 0.5
 v0 <- 0.8
 T1 <- 10000
-N_D<-2
+K<-2
 N<-5
 N_max<-8
 LEVIER<-FALSE
 
 para <- c(omega,a,b,sigma,v0)
-v<-volatilityVector(para,N_D,N)
-MatrixP<-P(para,N_D,N)
-stationnaryDist<-probapi(omega,N_D,N)
+v<-volatilityVector(para,K,N)
+MatrixP<-P(para,K,N)
+stationnaryDist<-probapi(omega,K,N)
 
 para_tilde<-natWork(para+0.01*sample(c(-1,1),length(para),TRUE,c(0.5,0.5)),FALSE)
 
@@ -282,7 +281,7 @@ progress <- function(n) setTxtProgressBar(pb, n)
 opts <- list(progress = progress)
 
 ordi<-1
-model<-expand.grid(ech=1,LEVIER=FALSE,N_D=N_D,N=c(1:N_max),N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
+model<-expand.grid(ech=1,LEVIER=FALSE,K=K,N=c(1:N_max),N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
 
 Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("Rcpp","RcppArmadillo","RcppEigen"),
            .noexport = c("natWork","workNat","logLik"), .options.snow = opts) %dopar% {
@@ -291,7 +290,7 @@ Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("R
              X<-rnorm(T1,0,sqrt(v[sim.mc(stationnaryDist,MatrixP,T1)]))
              
              for(N in 1:N_max){
-               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,N_D=N_D,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
                
                if(!is(opt,"try-error")){
                  vars<-c("omega","a","b","sigma","v0")
@@ -336,7 +335,7 @@ progress <- function(n) setTxtProgressBar(pb, n)
 opts <- list(progress = progress)
 
 ordi<-1
-model<-expand.grid(ech=1,LEVIER=FALSE,N_D=c(1:N_Dmax),N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
+model<-expand.grid(ech=1,LEVIER=FALSE,K=c(1:N_Dmax),N=N,N_T=T1,Np=0,loglik=0,AIC=0,BIC=0,omega=0,a=0,b=0,sigma=0,v0=0,l=0,theta_l=0)
 
 Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("Rcpp","RcppArmadillo","RcppEigen"),
            .noexport = c("natWork","workNat","logLik"), .options.snow = opts) %dopar% {
@@ -344,8 +343,8 @@ Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("R
              set.seed(seed[i+n*(ordi-1)])
              X<-rnorm(T1,0,sqrt(v[sim.mc(stationnaryDist,MatrixP,T1)]))
              
-             for(N_D in 1:N_Dmax){
-               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,N_D=N_D,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+             for(K in 1:N_Dmax){
+               opt<-try(solnp(pars=para_tilde,fun=logLik,ech=X,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
                
                if(!is(opt,"try-error")){
                  vars<-c("omega","a","b","sigma","v0")
@@ -353,14 +352,14 @@ Y<-foreach(i=1:n, .combine=rbind, .export=c("sim.mc", "solnp"), .packages = c("R
                  params<-workNat(opt$pars,LEVIER)
                  names(params)<-para_names(LEVIER)
                  
-                 model[N_D,"ech"] <- i+n*(ordi-1)
-                 model[N_D,colnames(model) %in% names(params)] <- round(params[vars],5)
-                 model[N_D,"loglik"]<--as.numeric(opt$values[length(opt$values)])
-                 model[N_D,'N_T']<-length(X)
-                 model[N_D,'Np']<-length(params)
-                 model[N_D,'AIC'] <- model[N_D,"loglik"]-model[N_D,'Np']
-                 model[N_D,'BIC'] <- model[N_D,"loglik"]-(model[N_D,'Np'])*log(model[N_D,'N_T'])/2
-                 model[N_D,'BIC'] <- model[N_D,"loglik"]-(model[N_D,'Np'])*log(model[N_D,'N_T'])/2
+                 model[K,"ech"] <- i+n*(ordi-1)
+                 model[K,colnames(model) %in% names(params)] <- round(params[vars],5)
+                 model[K,"loglik"]<--as.numeric(opt$values[length(opt$values)])
+                 model[K,'N_T']<-length(X)
+                 model[K,'Np']<-length(params)
+                 model[K,'AIC'] <- model[K,"loglik"]-model[K,'Np']
+                 model[K,'BIC'] <- model[K,"loglik"]-(model[K,'Np'])*log(model[K,'N_T'])/2
+                 model[K,'BIC'] <- model[K,"loglik"]-(model[K,'Np'])*log(model[K,'N_T'])/2
                  
                }
              }

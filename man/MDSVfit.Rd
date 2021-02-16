@@ -89,5 +89,5 @@ Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility 
 \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
 }
 \seealso{
-For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}}, simulation \code{\link{MDSVsim}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 }

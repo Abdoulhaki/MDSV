@@ -40,7 +40,7 @@
 #' Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility modeling: the factorial hidden Markov volatility model. 
 #' \emph{Journal of Business & Economic Statistics}, 37(4), 696-709. \url{https://doi.org/10.1080/07350015.2017.1415910}
 #' 
-#' @seealso For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+#' @seealso For filtering \code{\link{MDSVfilter}}, bootstrap forecasting \code{\link{MDSVboot}}, simulation \code{\link{MDSVsim}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 #' 
 #' @examples 
 #' \dontrun{
@@ -261,6 +261,10 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 "plot.MDSVfit" <- function(x, plot.type = c("dis", "nic"), ...) {
   stopifnot(class(x) == "MDSVfit")
   stopifnot(prod(plot.type %in% c("dis", "nic"))==1)
+  if(x$ModelType == "Univariate realized variances") if("nic" %in% plot.type){
+    print("print.MDSVfit() WARNING: New Impact Curve is not plot for realized variances")
+    plot.type <- plot.type[plot.type != "nic"]
+  }
   
   para      <- x$estimates
   if(is.null(para["b"])) {

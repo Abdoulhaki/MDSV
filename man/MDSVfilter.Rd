@@ -119,5 +119,5 @@ Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility 
 Augustyniak, M., Dufays, A., & Maoude, K.H.A. (2021). Multifractal Discrete Stochastic Volatility.
 }
 \seealso{
-For fitting \code{\link{MDSVfit}}, bootstrap forecasting \code{\link{MDSVboot}} and rolling estimation and forecast \code{\link{MDSVroll}}.
+For fitting \code{\link{MDSVfit}}, bootstrap forecasting \code{\link{MDSVboot}}, simulation \code{\link{MDSVsim}} and rolling estimation and forecast \code{\link{MDSVroll}}.
 }

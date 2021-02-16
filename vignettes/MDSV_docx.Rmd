@@ -35,21 +35,19 @@ Let $r_t$ and $RV_t$ denote, respectively, the demeaned log-return and realized 
 \label{eq:rt}
 r_t &= \sqrt{V_t}\epsilon_t\,,
 \end{align} 
-
-where $\{\epsilon_t\}$ is a serially independent normal innovation processes with mean~0 and variance~1. For the univariate serie $RV_t$, we assume that
+where $\{\epsilon_t\}$ is a serially independent normal innovation processes with mean $0$ and variance $1$. For the univariate serie $RV_t$, we assume that
 \begin{align}
 \label{eq:RVt}
 RV_t &= V_t\eta_t\,,
 \end{align} 
-where $\{\eta_t\}$ is a serially independent gamma innovation processes with mean~1. In the case of the joint framework, to relate $(r_t, RV_t)$ to the latent process, we assume that
-
+where $\{\eta_t\}$ is a serially independent gamma innovation processes with mean $1$ (shape $\gamma$ and scale $1/\gamma$. In the case of the joint framework, to relate $(r_t, RV_t)$ to the latent process, we assume that
 \begin{align}
 \label{eq:j1}
 r_t &= \sqrt{V_t}\epsilon_t, \\
 \label{eq:j2}
 \log RV_t &= \xi + \varphi \log V_t + \delta_1 \epsilon_t + \delta_2 \left(\epsilon_t^2-1\right) + \gamma\varepsilon_t,
 \end{align} 
-where $\xi\in\mathbb{R}$, $\varphi\in\mathbb{R}$, $\delta_1\in\mathbb{R}$, $\delta_2\in\mathbb{R}$ and $\gamma\in(0,\infty)$ are parameters, and $\{\epsilon_t\}$ and $\{\varepsilon_t\}$ are mutually and serially independent normal innovation processes with mean~0 and variance~1.
+where $\xi\in\mathbb{R}$, $\varphi\in\mathbb{R}$, $\delta_1\in\mathbb{R}$, $\delta_2\in\mathbb{R}$ and $\gamma\in(0,\infty)$ are parameters, and $\{\epsilon_t\}$ and $\{\varepsilon_t\}$ are mutually and serially independent normal innovation processes with mean 0 and variance 1.
 
 ## Volatility persistance component {#Ct}
 
@@ -139,14 +137,14 @@ out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 0, LEVIER = LEVIER)
 # Summary
 summary(out)
 # Plot
-plot(out,c("dis"))
+plot(out,c("nic"))
 
 # Model estimation : univariate realized variances (ModelType = 1) without leverage
 out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 1, LEVIER = FALSE)
 # Summary
 summary(out)
 # Plot
-plot(out,c("nic"))
+plot(out,c("dis"))
 
 # Model estimation : joint model (ModelType = 2)
 out       <- MDSVfit(K = K, N = N, data = sp500, ModelType = 2, LEVIER = LEVIER)
@@ -230,6 +228,16 @@ out       <- MDSVboot(fit = out_fit, n.ahead = 100, n.bootpred = 10000, rseed = 
 summary(out)
 
 ```
+
+## Simulation {#sim}
+
+The \texttt{MDSVsim} method takes the following arguments:
+
+```{r, echo = TRUE, eval = TRUE}
+args(MDSVsim)
+```
+
+where the \texttt{n.sim} indicates the length of the simulation while \texttt{m.sim} the number of independent simulations. Key to replicating results is the \texttt{rseed} argument which is used to pass a user seed to initialize the random number generator, else one will be assigned by the program. 
 
 ## Rolling Estimation {#rolling}
 

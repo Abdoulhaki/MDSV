@@ -146,5 +146,5 @@ Augustyniak, M., Bauwens, L., & Dufays, A. (2019). A new approach to volatility 
 JamesHamilton: D.(1994), time series analysis, 1994.
 }
 \seealso{
-For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}} and bootstrap forecasting \code{\link{MDSVboot}}.
+For fitting \code{\link{MDSVfit}}, filtering \code{\link{MDSVfilter}}, simulation \code{\link{MDSVsim}} and bootstrap forecasting \code{\link{MDSVboot}}.
 }
