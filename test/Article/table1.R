@@ -1,4 +1,4 @@
-if(!require(MDSV)){install.packages("MDSV")}; library(MDSV)
+library(MDSV)
 
 data("sp500")
 data("ftse")

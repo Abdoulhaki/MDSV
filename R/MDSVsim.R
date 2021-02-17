@@ -24,8 +24,6 @@
 #'     \item RV_t : simulated realized variances (only if ModelType == 1 or ModelType == 2).
 #' }
 #' 
-
-#' 
 #' @details 
 #' n.start is the simulation horizon to be delete (from the start). The leverage effect is taken into 
 #' account according to the FHMV model (see Augustyniak et al., 2019). While simulating an
@@ -94,15 +92,16 @@ MDSVsim<-function(N, K, para, ModelType = 0, LEVIER = FALSE, n.sim = 1000, n.sta
     stop("MDSVsim(): input ModelType must be 0, 1 or 2!")
   }
   
-  if ((!is.numeric(rseed)) || is.na(rseed)) {
+  if ((!is.numeric(rseed)) & !is.na(rseed)) {
     print("MDSVsim() WARNING: input rseed must be numeric! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
-  }else if(!(rseed%%1==0)){
-    print("MDSVsim() WARNING: input rseed must be an integer! rseed set to random")
-    rseed <- sample.int(.Machine$integer.max,1)
+  }else if(is.numeric(rseed)){ 
+    if(!(rseed%%1==0)){
+      rseed <- floor(rseed)
+      print(paste0("MDSVsim() WARNING: input rseed must be an integer! rseed set to ",rseed))
+    }
+    set.seed(rseed)
   }
-  
-  set.seed(rseed)
   
   if(!is.logical(LEVIER)) {
     stop("MDSVsim(): input LEVIER must be logical!")
@@ -196,8 +195,8 @@ MDSVsim<-function(N, K, para, ModelType = 0, LEVIER = FALSE, n.sim = 1000, n.sta
         RV_t        <- RV_t[(n.start+1):(n.sim+n.start)]
         tmp         <- list(RV_t = RV_t)
       }
-      names(tmp)<-paste("sim",sim,sep = ".")
-      out<-c(out,tmp)
+      out             <- c(out,list(tmp))
+      names(out)[sim] <- paste("sim",sim,sep = ".")
     }
   }else{
     for(sim in 1:m.sim){
@@ -205,7 +204,7 @@ MDSVsim<-function(N, K, para, ModelType = 0, LEVIER = FALSE, n.sim = 1000, n.sta
       if(ModelType == 0) {
         r_t         <- rnorm(70,0,sqrt(V_t[1:70]))
         for(t in 1:(n.sim+n.start)){
-          lt        <- levierVolatility(ech = r_t, para = para, ModelType = ModelType)$levier
+          lt        <- levierVolatility(ech = r_t, para = para, Model_type = ModelType)$levier
           r_t       <- c(r_t, rnorm(1,0,sqrt(lt*V_t[70+t])))
         }
         r_t         <- r_t[(n.start+1):(n.sim+n.start)]
@@ -213,22 +212,21 @@ MDSVsim<-function(N, K, para, ModelType = 0, LEVIER = FALSE, n.sim = 1000, n.sta
       }else if(ModelType == 2) {
         r_t         <- rnorm(70,0,sqrt(V_t[1:70]))
         e_t         <- r_t/sqrt(V_t[1:70])
-        for(t in 1:(n.sim+n.start)){
-          lt        <- levierVolatility(ech = r_t, para = para, ModelType = ModelType)$levier
+        for(t in 1:(n.sim+n.start-70)){
+          lt        <- levierVolatility(ech = r_t, para = para, Model_type = ModelType)$levier
           r_t       <- c(r_t, rnorm(1,0,sqrt(lt*V_t[70+t])))
-          e_t       <- r_t/sqrt(lt*V_t[70+t])
+          e_t       <- c(e_t,r_t[t]/sqrt(lt*V_t[70+t]))
         }
         RV_t        <- exp(para["xi"] + para["varphi"]*log(V_t) + para["delta1"]*e_t + para["delta2"]*(e_t^2-1) + para["shape"]*rnorm(n.sim+n.start))
         RV_t        <- RV_t[(n.start+1):(n.sim+n.start)]
         r_t         <- r_t[(n.start+1):(n.sim+n.start)]
         tmp         <- list(r_t = r_t, RV_t = RV_t)
       }
-      names(tmp)<-paste("sim",sim,sep = ".")
-      out<-c(out,tmp)
+      out             <- c(out,list(tmp))
+      names(out)[sim] <- paste("sim",sim,sep = ".")
     }
   }
 
-  
   if(ModelType==0) Model_type <- "Univariate log-return"
   if(ModelType==1) Model_type <- "Univariate realized variances"
   if(ModelType==2) Model_type <- "Joint log-return and realized variances"
