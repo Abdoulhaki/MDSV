@@ -202,12 +202,15 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     stop("MDSVroll(): input VaR.alpha must be between 0 and 1!")
   }
   
-  if ((!is.numeric(rseed)) || is.na(rseed)) {
+  if ((!is.numeric(rseed)) & !is.na(rseed)) {
     print("MDSVroll() WARNING: input rseed must be numeric! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
-  }else if(!(rseed%%1==0)){
-    print("MDSVroll() WARNING: input rseed must be an integer! rseed set to random")
-    rseed <- sample.int(.Machine$integer.max,1)
+  }else if(is.numeric(rseed)){ 
+    if(!(rseed%%1==0)){
+      rseed <- floor(rseed)
+      print(paste0("MDSVroll() WARNING: input rseed must be an integer! rseed set to ",rseed))
+    }
+    set.seed(rseed)
   }
   
   if(ModelType==0) Model_type <- "Univariate log-return"
@@ -475,8 +478,6 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       para <- unlist(model[t, vars])
       l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
       
-      set.seed(rseed)
-      
       pi_0 <- l$w_hat
       if(t %in% update_date+1){
         if(refit.window == "moving") strt <- strt + refit.every
@@ -544,8 +545,6 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
               
       para <- unlist(model[t, vars])
       l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N,t=nrow(ech))
-      
-      set.seed(rseed)
       
       pi_0 <- l$w_hat
       if(t %in% update_date+1){

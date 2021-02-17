@@ -88,12 +88,15 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
     stop("MDSVboot(): input n.ahead and n.bootpred must be integer!")
   }
   
-  if ((!is.numeric(rseed)) || is.na(rseed)) {
+  if ((!is.numeric(rseed)) & !is.na(rseed)) {
     print("MDSVboot() WARNING: input rseed must be numeric! rseed set to random")
     rseed <- sample.int(.Machine$integer.max,1)
-  }else if(!(rseed%%1==0)){
-    print("MDSVboot() WARNING: input rseed must be an integer! rseed set to random")
-    rseed <- sample.int(.Machine$integer.max,1)
+  }else if(is.numeric(rseed)){ 
+    if(!(rseed%%1==0)){
+      rseed <- floor(rseed)
+      print(paste0("MDSVboot() WARNING: input rseed must be an integer! rseed set to ",rseed))
+    }
+    set.seed(rseed)
   }
   
   if(fit$ModelType == "Univariate log-return")                   ModelType <- 0
@@ -119,9 +122,6 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
                    n.bootpred = n.bootpred))
   
   l<-logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=T)
-  
-  #simulation
-  set.seed(rseed)
   
   pi_0 <- l$w_hat
   sig  <- volatilityVector(para=para,K=K,N=N)
