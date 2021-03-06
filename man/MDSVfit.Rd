@@ -26,6 +26,7 @@ A list consisting of:
     \item LEVIER : wheter the fit take the leverage effect into account or not.
     \item N : number of components for the MDSV process.
     \item K : number of states of each MDSV process component.
+    \item convergence : 0 if convergence, 1 if not.
     \item estimates : estimated parameters.
     \item LogLikelihood : log-likelihood of the model on the data.
     \item AIC : Akaike Information Criteria of the model on the data.

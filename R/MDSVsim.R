@@ -78,12 +78,22 @@ MDSVsim<-function(N, K, para, ModelType = 0, LEVIER = FALSE, n.sim = 1000, n.sta
     stop("MDSVsim(): input N and K must all be numeric!")
   }else if(!(N%%1==0) || !(K%%1==0)){
     stop("MDSVsim(): input N and K must all be integer!")
+  }else if(K<2){
+    stop("MDSVfit(): input K must be greater than one!")
+  }else if(N<1){
+    stop("MDSVfit(): input N must be positive!")
   }
   
   if ( (!is.numeric(n.sim)) || (!is.numeric(n.start)) || (!is.numeric(m.sim))) {
     stop("MDSVsim(): input n.sim, n.start and m.sim must all be numeric!")
   }else if(!(n.sim%%1==0) || !(n.start%%1==0) || !(m.sim%%1==0)){
     stop("MDSVsim(): input n.sim, n.start and m.sim must all be integer!")
+  }else if((n.sim<1) || (m.sim<1)){
+    stop("MDSVfit(): input n.sim and m.sim must be positive!")
+  }
+  
+  if(n.start<0){
+    stop("MDSVfit(): input n.start must be positive or 0!")
   }
   
   if(!is.numeric(ModelType)) {

@@ -105,6 +105,7 @@
 #' 
 #' @export
 #' @import Rcpp
+#' @import KScorrect
 #' @importFrom mhsmm sim.mc
 #' @importFrom Rsolnp solnp
 #' @importFrom foreach foreach %dopar%
@@ -117,6 +118,10 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     stop("MDSVroll(): input N and K must all be numeric!")
   }else if(!(N%%1==0) || !(K%%1==0)){
     stop("MDSVfit(): input N and K must all be integer!")
+  }else if(K<2){
+    stop("MDSVfit(): input K must be greater than one!")
+  }else if(N<1){
+    stop("MDSVfit(): input N must be positive!")
   }
   
   if(!is.numeric(ModelType)) {
@@ -134,7 +139,9 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
   
   if(!is.null(names(data))) {
     dates <- as.Date(names(data)[1:T])
-  }else {
+  }else if(!is.null(rownames(data))){
+    dates <- as.Date(rownames(data)[1:T])
+  }else{
     dates <- 1:T
   }
   
@@ -156,6 +163,8 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     stop("MDSVroll(): inputs n.ahead, forecast.length, refit.every and n.bootpred must all be numeric!")
   }else if(!(n.ahead%%1==0) || !(forecast.length%%1==0) || !(refit.every%%1==0) || !(n.bootpred%%1==0)){
     stop("MDSVfit(): input n.ahead, forecast.length, refit.every and n.bootpred must all be integer!")
+  }else if((n.ahead<1) || (forecast.length<1) || (refit.every<1) || (n.bootpred<1)){
+    stop("MDSVfit(): input n.ahead, forecast.length, refit.every and n.bootpred must all be positive!")
   }
   
   if(forecast.length < refit.every){
@@ -181,6 +190,8 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
   }
   if(is.numeric(window.size)) if(!(window.size%%1==0)){
     stop("MDSVfit(): input window.size must be integer!")
+  }else if(window.size<1){
+    stop("MDSVfit(): input window.size must be positive!")
   }
   
   if ( (!is.null(cluster)) & (!("cluster" %in% class(cluster))) ) {
@@ -309,7 +320,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         }
         
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-          model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+          va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+          if(class(va) =='try-error') {
+            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }else{
+            model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }
         }
         
       }else{
@@ -366,7 +383,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
        }
        
        if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-         model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+         va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+         if(class(va) =='try-error') {
+           va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+           if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+         }else{
+           model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+         }
        }
      }else{
        l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rvt"], Model_type = ModelType)
@@ -378,7 +401,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
      model[t+1,'BIC']            <- model[(t+1),"loglik"]-length(para)*log(nrow(ech))/2
      
      if(ModelType == 2){
-       model[t+1,"Marg_loglik"]  <-l$Marg_loglik
+       model[t+1,"Marg_loglik"]  <- l$Marg_loglik
        model[t+1,'AICm']         <- model[(t+1),"Marg_loglik"]-length(para)
        model[t+1,'BICm']         <- model[(t+1),"Marg_loglik"]-length(para)*log(nrow(ech))/2
      }
@@ -410,7 +433,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         }
         
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-          model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+          va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+          if(class(va) =='try-error') {
+            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }else{
+            model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }
         }
       }else{
         l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rvt"], Model_type = ModelType)
@@ -476,7 +505,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       ech    <- data[strt:(T-forecast.length+t-1),]
       
       para <- unlist(model[t, vars])
-      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
+      l    <- logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
       
       pi_0 <- l$w_hat
       if(t %in% update_date+1){
@@ -486,7 +515,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }
     
       MC_sim <- t(matrix(sim.mc(pi_0, matP, rep(n.ahead,n.bootpred)),n.ahead,n.bootpred,byrow=FALSE)) #simulation of Markov chain
-      z_t<-matrix(rnorm(n.bootpred*n.ahead),nrow=n.bootpred,ncol=n.ahead)
+      z_t    <- matrix(rnorm(n.bootpred*n.ahead),nrow=n.bootpred,ncol=n.ahead)
       
       if(LEVIER){
         Levier     <- rep(1,n.bootpred)%*%t(levierVolatility(ech=ech[((nrow(ech)-200):nrow(ech)),1],para=para,Model_type=ModelType)$`Levier`)
@@ -688,13 +717,15 @@ g<-function(vector){
   
   if(!is.logical(VaR.test)){
     stop("summary.MDSVroll(): input VaR.test must be logical!")
-  }else if(!(object$calculate.VaR)){
-    print("summary.MDSVroll() WARNING: Unable to perform VaR.test because object$calculate.VaR = FALSE! set VaR.test to FALSE")
-    VaR.test<-FALSE
-  }else if(object$ModelType == 1){
-    print("summary.MDSVroll() WARNING: VaR is only for log-returns! set VaR.test to FALSE")
-    VaR.test<-FALSE
-  }
+  }else if(VaR.test){
+    if(!(object$calculate.VaR)){
+      print("summary.MDSVroll() WARNING: Unable to perform VaR.test because object$calculate.VaR = FALSE! set VaR.test to FALSE")
+      VaR.test<-FALSE
+    }else if(object$ModelType == 1){
+      print("summary.MDSVroll() WARNING: VaR is only for log-returns! set VaR.test to FALSE")
+      VaR.test<-FALSE
+    }
+  } 
   
   if((!is.numeric(Loss.horizon)) || (!is.numeric(Loss.window))){
     stop("summary.MDSVroll(): input Loss.horizon and Loss.window must all be numeric!")
@@ -938,7 +969,7 @@ g<-function(vector){
       cat(paste0("Reject Null        : ",decision,"\n\n"))
       
       viol      <- g(x$estimates[,paste0('I',100*(1-VaR.alpha[iter]))])
-      pi        <- (viol[1,2]+viol[2,1])/sum(viol)
+      pi        <- (viol[1,2]+viol[2,2])/sum(viol)
       pi0       <- (viol[1,2])/(viol[1,1]+viol[1,2])
       pi1       <- (viol[2,2])/(viol[2,2]+viol[2,1])
       LR.ind    <- - 2*log((((1-pi)^(viol[1,1]+viol[2,1]))*(pi^(viol[1,2]+viol[2,2])))/

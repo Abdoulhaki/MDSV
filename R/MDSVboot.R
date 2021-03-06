@@ -86,6 +86,8 @@ MDSVboot<-function(fit,n.ahead=100,n.bootpred=500,rseed=NA){
     stop("MDSVboot(): inputs must be numeric!")
   }else if(!(n.ahead%%1==0) || !(n.bootpred%%1==0)){
     stop("MDSVboot(): input n.ahead and n.bootpred must be integer!")
+  }else if((n.ahead<1) || (n.bootpred<1)){
+    stop("MDSVfit(): input n.ahead and n.bootpred must be positive!")
   }
   
   if ((!is.numeric(rseed)) & !is.na(rseed)) {
