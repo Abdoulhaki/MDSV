@@ -13,6 +13,7 @@
 #'     \item LEVIER : wheter the fit take the leverage effect into account or not.
 #'     \item N : number of components for the MDSV process.
 #'     \item K : number of states of each MDSV process component.
+#'     \item convergence : 0 if convergence, 1 if not.
 #'     \item estimates : estimated parameters.
 #'     \item LogLikelihood : log-likelihood of the model on the data.
 #'     \item AIC : Akaike Information Criteria of the model on the data.
@@ -120,195 +121,151 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   if(!("TOL" %in% names(ctrl))) ctrl<-c(ctrl, list(TOL=1e-15))
   if(!("trace" %in% names(ctrl))) ctrl<-c(ctrl, list(trace=0))
   
-  vars<-c("omega","a","b","sigma","v0")
-  if(ModelType==1) vars <- c(vars,"shape")
-  if(ModelType==2) vars <- c(vars,"xi","varphi","delta1","delta2","shape")
-  if(LEVIER)        vars <- c(vars,"l","theta")
-  
-  paral <- c(0.25,0.75, 1.09,0.5*sqrt(var(data[,1])),0.23)
-  if(ModelType==1) paral <- c(paral,1.05)
-  if(ModelType==2) paral <- c(paral,-3.75,	0.31,	-0.25,	0.01,	1.05)
-  if(LEVIER)       paral <- c(paral,0.75,0.25)
-  paral_tilde <- natWork(para=paral,LEVIER=LEVIER,Model_type=ModelType)
-  
   para <- c(0.52,0.85, 2.77,sqrt(var(data[,1])),0.72)
   if(ModelType==1) para <- c(para,2.10)
   if(ModelType==2) para <- c(para,-1.5,	0.72,	-0.09,	0.04,	2.10)
   if(LEVIER)       para <- c(para,1.5,0.87568)
   para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
   
-  parah <- c(0.79,0.99, 10.5,2*sqrt(var(data[,1])),0.95)
-  if(ModelType==1) parah <- c(parah,5.15)
-  if(ModelType==2) parah <- c(parah,-0.1,	0.93,	-0.02,	0.09,	5.15)
-  if(LEVIER)       parah <- c(parah,5.15,0.99)
-  parah_tilde <- natWork(para=parah,LEVIER=LEVIER,Model_type=ModelType)
-  
   vars<-c("omega","a","b","sigma","v0")
   if(ModelType==1) vars <- c(vars,"shape")
   if(ModelType==2) vars <- c(vars,"xi","varphi","delta1","delta2","shape")
   if(LEVIER)        vars <- c(vars,"l","theta")
-  names(paral)<-vars
-  names(parah)<-vars
   names(para)<-vars
-  
-  para_mat<-matrix(c(paral,para,parah),nrow=3,byrow = T)
-  
-  if(is.numeric(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    if(is.numeric(logLik(ech=data,para_tilde=paral_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      if(is.numeric(logLik(ech=data,para_tilde=parah_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-        for(j in 1:length(para)){
-          para[j] <- sample(para_mat[,j],size=1)
-          if( para[j]==min(para_mat[,j]) ) {
-            para[j]<- para[j]+runif(1)*(max(para_mat[,j])-min(para_mat[,j]))
-          }else if( para[j]==max(para_mat[,j]) ){
-            para[j]<- para[j]-runif(1)*(max(para_mat[,j])-min(para_mat[,j]))
-          }else{
-            u<-runif(1)
-            para[j]<- (1-u)*para[j]+u*(max(para_mat[,j])-min(para_mat[,j]))
-          }
-        }
-      }else{
-        for(j in 1:length(para)){
-            u<-runif(1)
-            para[j] <- u*paral[,j]+(1-u)*para[,j]
-        }
-      }
-    }else if(is.numeric(logLik(ech=data,para_tilde=parah_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      for(j in 1:length(para)){
-        u<-runif(1)
-        para[j] <- u*para[,j]+(1-u)*parah[,j]
-      }
-    }else{
-      para<-para
-    }
-  }else if(is.numeric(logLik(ech=data,para_tilde=paral_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    if(is.numeric(logLik(ech=data,para_tilde=parah_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      for(j in 1:length(para)){
-        u<-runif(1)
-        para[j] <- u*paral[,j]+(1-u)*parah[,j]
-      }
-    }else{
-      para<-paral
-    }
-  }else if(is.numeric(logLik(ech=data,para_tilde=parah_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    para<-parah
-  }else{
-    stop("MDSVfit(): Fail to find an optimization starting point")
-  }
-  
-  names(para)<-vars
-  para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-  
   
   t1<-0
-  while(!is.numeric(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    if(t1>10) stop("MDSVfit(): Fail to find an optimization starting point")
+  while(is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
+    if(t1>10) break
     
     para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
     
     t1<-t1+1
   }
   
-  oldw <- getOption("warn")
-  found <- FALSE
-  
+  convergence <- 1
+  oldw        <- getOption("warn")
   options(warn = -1)
-  opt<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
-  params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
-  names(params)<-vars
-  
-  if( (round(params["omega"],5)==0) || (round(params["omega"],5)==1) ){
-    u<-runif(1)
-    para["omega"]<-u*paral["omega"]+(1-u)*parah["omega"]
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    opt2<-opt
-  }else if( (round(params["a"],5)==0) || (round(params["a"],5)==1) ){
-    u<-runif(1)
-    para["a"]<-u*paral["a"]+(1-u)*parah["a"]
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    opt2<-opt
-  }else if( (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ){
-    u<-runif(1)
-    para["v0"]<-u*paral["v0"]+(1-u)*parah["v0"]
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    opt2<-opt
-  }else if( (round(params["b"],5)==1) ){
-    u<-runif(1)
-    para["b"]<-u*paral["b"]+(1-u)*parah["b"]
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    opt2<-opt
-  }else if( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ){
-    u<-runif(1)
-    para["b"]<-u*paral["b"]+(1-u)*parah["b"]
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    opt2<-opt
+  if(t1<11){
+    opt<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+    if(!(class(opt) =='try-error')){
+      params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
+      names(params)<-vars
+    }
   }else{
-    found<-TRUE
+    opt<-NULL
   }
   
-  t<-1
-  while(!found){
+  
+  if(is.null(opt) || (class(opt) =='try-error') || (round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
+      (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
+      (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
+      (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+      ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+      ( LEVIER & (round(params["l"],5)==0)) ){
+    
+    para <- c(0.25,0.75, 1.09,0.5*sqrt(var(data[,1])),0.23)
+    if(ModelType==1) para <- c(para,1.05)
+    if(ModelType==2) para <- c(para,-3.75,	0.31,	-0.25,	0.01,	1.05)
+    if(LEVIER)       para <- c(para,0.75,0.25)
+    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
+    names(para)<-vars
     
     t1<-0
-    while(!is.numeric(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      if(t1>10) stop("MDSVfit(): Fail to find an optimization starting point")
+    while(is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
+      if(t1>10) break
       
       para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
       
       t1<-t1+1
     }
     
-    opt<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
-    if (class(opt) =='try-error'){
-      print("MDSVfit() WARNING: Fail to converge! Return the best result.")
-      break
+    if(t1<11){
+      opt2<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+      if(!(class(opt2) =='try-error')){
+        params<-workNat(para=opt2$pars,LEVIER=LEVIER,Model_type=ModelType)
+        names(params)<-vars
+        if(-as.numeric(opt$values[length(opt$values)]) < -as.numeric(opt2$values[length(opt2$values)])){
+          opt <- opt2
+        }else{
+          if( !((round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
+                (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
+                (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
+                (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+                ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+                ( LEVIER & (round(params["l"],5)==0))) ){
+            opt <- opt2
+            convergence <- 0
+          }else{
+            params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
+            names(params)<-vars
+          }
+        }
+      }
     }
-    params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
-    names(params)<-vars
-    
-    if(-as.numeric(opt$values[length(opt$values)]) == -as.numeric(opt2$values[length(opt2$values)])){
-      print("MDSVfit() WARNING: Fail to converge! Return the best result.")
-      break
-    }
-    
-    if( (round(params["omega"],5)==0) || (round(params["omega"],5)==1) ){
-      u<-runif(1)
-      para["omega"]<-u*paral["omega"]+(1-u)*parah["omega"]
-      para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-      if(-as.numeric(opt$values[length(opt$values)]) > -as.numeric(opt2$values[length(opt2$values)])) opt2<- opt
-    }else if( (round(params["a"],5)==0) || (round(params["a"],5)==1) ){
-      u<-runif(1)
-      para["a"]<-u*paral["a"]+(1-u)*parah["a"]
-      para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-      if(-as.numeric(opt$values[length(opt$values)]) > -as.numeric(opt2$values[length(opt2$values)])) opt2<- opt
-    }else if( (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ){
-      u<-runif(1)
-      para["v0"]<-u*paral["v0"]+(1-u)*parah["v0"]
-      para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-      if(-as.numeric(opt$values[length(opt$values)]) > -as.numeric(opt2$values[length(opt2$values)])) opt2<- opt
-    }else if( (round(params["b"],5)==1) ){
-      u<-runif(1)
-      para["b"]<-u*paral["b"]+(1-u)*parah["b"]
-      para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-      if(-as.numeric(opt$values[length(opt$values)]) > -as.numeric(opt2$values[length(opt2$values)])) opt2<- opt
-    }else if( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ){
-      u<-runif(1)
-      para["b"]<-u*paral["b"]+(1-u)*parah["b"]
-      para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-      if(-as.numeric(opt$values[length(opt$values)]) > -as.numeric(opt2$values[length(opt2$values)])) opt2<- opt
-    }else{
-      found<-TRUE
-    }
-    
-    t<-t+1
-    if(t>10) {
-      print("MDSVfit() WARNING: Fail to converge! Return the best result.")
-      if(-as.numeric(opt$values[length(opt$values)]) < -as.numeric(opt2$values[length(opt2$values)])) opt<- opt2
-      found<-TRUE
-    }
+  }else{
+    convergence <- 0
   }
   
+  if(convergence) if( is.null(opt) || (class(opt) =='try-error') || (round(params["omega"],5)==0) || 
+                      (round(params["omega"],5)==1) || (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
+      (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
+      (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+      ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+      ( LEVIER & (round(params["l"],5)==0)) ){
+    
+    para <- c(0.79,0.99, 10.5,2*sqrt(var(data[,1])),0.95)
+    if(ModelType==1) para <- c(para,5.15)
+    if(ModelType==2) para <- c(para,-0.1,	0.93,	-0.02,	0.09,	5.15)
+    if(LEVIER)       para <- c(para,5.15,0.99)
+    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
+    names(para)<-vars
+    
+    t1<-0
+    while(!is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
+      if(t1>10) break
+      
+      para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
+      
+      t1<-t1+1
+    }
+    
+    if(t1<11){
+      opt2<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+      if(!(class(opt2) =='try-error')){
+        params<-workNat(para=opt2$pars,LEVIER=LEVIER,Model_type=ModelType)
+        names(params)<-vars
+        if(-as.numeric(opt$values[length(opt$values)]) < -as.numeric(opt2$values[length(opt2$values)])){
+          opt <- opt2
+        }else{
+          if( !((round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
+                (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
+                (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
+                (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+                ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+                ( LEVIER & (round(params["l"],5)==0))) ){
+            opt <- opt2
+            convergence <- 0
+          }else{
+            params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
+            names(params)<-vars
+          }
+        }
+      }
+    }
+  }
   options(warn = oldw)
+  
+  if(convergence){
+    if(is.null(opt) || (class(opt) =='try-error')){
+      stop("MDSVfit() ERROR: Fail to converge!")
+    }else if((round(params["omega"],5)==0) || (round(params["omega"],5)==1) || (round(params["a"],5)==0) ||
+             (round(params["a"],5)==1) ||(round(params["v0"],5)==0) ||(round(params["v0"],5)==1) ||
+             (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+             ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+             ( LEVIER & (round(params["l"],5)==0)) ){
+      print("MDSVfit() WARNING: Fail to converge! Return the best results found.")
+    }
+  }
   
   ### Results
   
@@ -321,6 +278,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
             LEVIER        = LEVIER, 
             N             = N, 
             K             = K, 
+            convergence   = convergence,
             estimates     = params, 
             LogLikelihood = -as.numeric(opt$values[length(opt$values)]),
             AIC           = -as.numeric(opt$values[length(opt$values)])-length(params), 
@@ -348,6 +306,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #'     \item LEVIER : wheter the fit take the leverage effect into account or not.
 #'     \item N : number of components for the MDSV process.
 #'     \item K : number of states of each MDSV process component.
+#'     \item convergence : 0 if convergence, 1 if not.
 #'     \item estimates : estimated parameters.
 #'     \item LogLikelihood : log-likelihood of the model on the data.
 #'     \item AIC : Akaike Information Criteria of the model on the data.
@@ -381,7 +340,11 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
 #' @export
 "print.summary.MDSVfit" <- function(x, ...){
   stopifnot(class(x) == "summary.MDSVfit")
-  
+  if(1-x$convergence){
+    convergence <- "Convergence."
+  }else{
+    convergence <- "No Convergence. Retrun the best result."
+  }
   cat("=================================================\n")
   cat(paste0("=================  MDSV fitting =================\n"))
   cat("=================================================\n\n")
@@ -393,6 +356,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   
   cat("Optimal Parameters \n")
   cat("------------------------------------------------- \n")
+  cat(paste0("Convergence : ",convergence,"\n"))
   cat(paste(paste(names(x$estimates),round(x$estimates,6),sep=" \t: "),collapse = "\n"))
   cat("\n\n")
   cat(paste0("LogLikelihood : ", round(x$LogLikelihood,2),"\n\n"))

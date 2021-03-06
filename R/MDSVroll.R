@@ -105,6 +105,7 @@
 #' 
 #' @export
 #' @import Rcpp
+#' @import KScorrect
 #' @importFrom mhsmm sim.mc
 #' @importFrom Rsolnp solnp
 #' @importFrom foreach foreach %dopar%
@@ -134,7 +135,9 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
   
   if(!is.null(names(data))) {
     dates <- as.Date(names(data)[1:T])
-  }else {
+  }else if(!is.null(rownames(data))){
+    dates <- as.Date(rownames(data)[1:T])
+  }else{
     dates <- 1:T
   }
   
@@ -309,7 +312,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         }
         
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-          model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+          va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+          if(class(va) =='try-error') {
+            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }else{
+            model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }
         }
         
       }else{
@@ -366,7 +375,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
        }
        
        if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-         model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+         va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+         if(class(va) =='try-error') {
+           va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+           if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+         }else{
+           model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+         }
        }
      }else{
        l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rvt"], Model_type = ModelType)
@@ -378,7 +393,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
      model[t+1,'BIC']            <- model[(t+1),"loglik"]-length(para)*log(nrow(ech))/2
      
      if(ModelType == 2){
-       model[t+1,"Marg_loglik"]  <-l$Marg_loglik
+       model[t+1,"Marg_loglik"]  <- l$Marg_loglik
        model[t+1,'AICm']         <- model[(t+1),"Marg_loglik"]-length(para)
        model[t+1,'BICm']         <- model[(t+1),"Marg_loglik"]-length(para)*log(nrow(ech))/2
      }
@@ -410,7 +425,13 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         }
         
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
-          model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0)
+          va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
+          if(class(va) =='try-error') {
+            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }else{
+            model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
+          }
         }
       }else{
         l    <- logLik2(ech=ech,para=para,LEVIER=LEVIER,K=K,N=N,t=nrow(ech),r=model[t+1,"rvt"], Model_type = ModelType)
@@ -476,7 +497,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       ech    <- data[strt:(T-forecast.length+t-1),]
       
       para <- unlist(model[t, vars])
-      l<-logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
+      l    <- logLik2(ech=ech, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N, t=nrow(ech))
       
       pi_0 <- l$w_hat
       if(t %in% update_date+1){
@@ -486,7 +507,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       }
     
       MC_sim <- t(matrix(sim.mc(pi_0, matP, rep(n.ahead,n.bootpred)),n.ahead,n.bootpred,byrow=FALSE)) #simulation of Markov chain
-      z_t<-matrix(rnorm(n.bootpred*n.ahead),nrow=n.bootpred,ncol=n.ahead)
+      z_t    <- matrix(rnorm(n.bootpred*n.ahead),nrow=n.bootpred,ncol=n.ahead)
       
       if(LEVIER){
         Levier     <- rep(1,n.bootpred)%*%t(levierVolatility(ech=ech[((nrow(ech)-200):nrow(ech)),1],para=para,Model_type=ModelType)$`Levier`)
@@ -688,13 +709,15 @@ g<-function(vector){
   
   if(!is.logical(VaR.test)){
     stop("summary.MDSVroll(): input VaR.test must be logical!")
-  }else if(!(object$calculate.VaR)){
-    print("summary.MDSVroll() WARNING: Unable to perform VaR.test because object$calculate.VaR = FALSE! set VaR.test to FALSE")
-    VaR.test<-FALSE
-  }else if(object$ModelType == 1){
-    print("summary.MDSVroll() WARNING: VaR is only for log-returns! set VaR.test to FALSE")
-    VaR.test<-FALSE
-  }
+  }else if(VaR.test){
+    if(!(object$calculate.VaR)){
+      print("summary.MDSVroll() WARNING: Unable to perform VaR.test because object$calculate.VaR = FALSE! set VaR.test to FALSE")
+      VaR.test<-FALSE
+    }else if(object$ModelType == 1){
+      print("summary.MDSVroll() WARNING: VaR is only for log-returns! set VaR.test to FALSE")
+      VaR.test<-FALSE
+    }
+  } 
   
   if((!is.numeric(Loss.horizon)) || (!is.numeric(Loss.window))){
     stop("summary.MDSVroll(): input Loss.horizon and Loss.window must all be numeric!")

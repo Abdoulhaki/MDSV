@@ -156,7 +156,7 @@ MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
     stop("MDSVfilter(): input para[shape] must be greater than 0!")
   }else if(LEVIER){
     if(ModelType==0){
-      if(para[6]<=0){
+      if(para[6]<0){
         stop("MDSVfilter(): input para[l] must be greater than 0!")
       }else if((para[7]>1) || (para[7]<0)){
         stop("MDSVfilter(): input para[theta_l] must be between 0 and 1!")
@@ -198,6 +198,16 @@ MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
     stop("MDSVfilter(): data second colomn must be positive!")
   }
   
+  l<-logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
+  if(!(ModelType==1)){
+    pi_0 <- l$w_hat
+    sig<- volatilityVector(para=para,N=N,K=K)
+    if(LEVIER){
+      Levier<-levierVolatility(ech=data[((T-200):T),1],para=para,Model_type=ModelType)$`levier`
+      sig<-sig*Levier
+    }
+  }
+  
   ### Results
   vars<-c("omega","a","b","sigma","v0")
   if(ModelType==1) vars <- c(vars,"shape")
@@ -205,14 +215,11 @@ MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
   if(LEVIER)       vars <- c(vars,"l","theta")
   
   names(para)<-vars
+  if(N==1) para<-para[(vars[!(vars=='b')])]
   
   if(ModelType==0) Model_type <- "Univariate log-return"
   if(ModelType==1) Model_type <- "Univariate realized variances"
   if(ModelType==2) Model_type <- "Joint log-return and realized variances"
-  if(N==1) para<-para[(vars[!(vars=='b')])]
-  Np<-length(para)
-  
-  l<-logLik2(ech=data, para=para, Model_type=ModelType, LEVIER=LEVIER, K=K, N=N)
   
   out<-list(ModelType      = Model_type, 
             LEVIER         = LEVIER, 
@@ -231,13 +238,6 @@ MDSVfilter<-function(N,K,data,para,ModelType=0,LEVIER=FALSE){
   if(ModelType==2) out<-c(out,list(Marg_loglik = l$Marg_loglik))
   
   if(!(ModelType==1)){
-    pi_0 <- l$w_hat
-    sig<- volatilityVector(para=para,N=N,K=K)
-    if(LEVIER){
-      Levier<-levierVolatility(ech=data[((T-200):T),1],para=para,Model_type=ModelType)$`levier`
-      sig<-sig*Levier
-    }
-    
     out<-c(out,list(VaR95 = qmist2n(0.05,sigma=sig,p=pi_0),
                     VaR99 = qmist2n(0.01,sigma=sig,p=pi_0)))
   }
