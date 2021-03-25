@@ -5,6 +5,7 @@
 #' @param data A univariate or bivariate data matrix. Can only be a matrix of 1 or 2 columns. If data has 2 columns, the first one has to be the log-returns and the second the realized variances.
 #' @param ModelType An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.
 #' @param LEVIER if \code{TRUE}, estime the MDSV model with leverage.
+#' @param start.pars List of staring parameters for the optimization routine. These are not usually required unless the optimization has problems converging.
 #' @param ... Further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.
 #' 
 #' @return A list consisting of:
@@ -77,23 +78,23 @@
 
 #' @export
 #' @import Rcpp
-#' @importFrom Rsolnp solnp 
-MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
+#' @importFrom Rsolnp solnp gosolnp
+MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,start.pars=list(),...){
   
   if ( (!is.numeric(N)) || (!is.numeric(K)) ) {
-    stop("MDSVfit(): input N and K must be numeric!")
+    stop("MDSVfit() ERROR: input N and K must be numeric!")
   }else if(!(N%%1==0) || !(K%%1==0)){
-    stop("MDSVfit(): input N and K must be integer!")
+    stop("MDSVfit() ERROR: input N and K must be integer!")
   }else if(K<2){
-    stop("MDSVfit(): input K must be greater than one!")
+    stop("MDSVfit() ERROR: input K must be greater than one!")
   }else if(N<1){
-    stop("MDSVfit(): input N must be positive!")
+    stop("MDSVfit() ERROR: input N must be positive!")
   }
   
   if(!is.numeric(ModelType)) {
-    stop("MDSVfit(): input ModelType must be numeric!")
+    stop("MDSVfit() ERROR: input ModelType must be numeric!")
   }else if(!(ModelType %in% c(0,1,2))){
-    stop("MDSVfit(): input ModelType must be 0, 1 or 2!")
+    stop("MDSVfit() ERROR: input ModelType must be 0, 1 or 2!")
   }
   
   if(!is.logical(LEVIER)) {
@@ -101,178 +102,200 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
   }
   
   if ( (!is.numeric(data)) || (!is.matrix(data))  ) {
-    stop("MDSVfit(): input data must be numeric matrix!")
+    stop("MDSVfit() ERROR: input data must be numeric matrix!")
   }
   
   k <- ncol(data)
   T <- nrow(data)
   
   if((k==1) & (!(ModelType == 0) & (!((ModelType == 1) & (LEVIER == FALSE))))){
-    stop("MDSVfit(): improperly data dimensioned matrices!")
+    stop("MDSVfit() ERROR: improperly data dimensioned matrices!")
   }
   
   if((k==1) & (ModelType == 1) & sum(data<0)>0 ){
-    stop("MDSVfit(): data must be positive!")
+    stop("MDSVfit() ERROR: data must be positive!")
   } 
   if((k==1) & (ModelType == 1)) data <- matrix(c(rep(1,nrow(data)),data),nrow(data),2)
   
   if(k==2) if(sum(data[,2]<0)>0 ){
-    stop("MDSVfit(): data second colomn must be positive!")
+    stop("MDSVfit() ERROR: data second colomn must be positive!")
   }
   
   ### Some constants
-  ctrl <- list(... = ...)
-  if(!("TOL" %in% names(ctrl))) ctrl<-c(ctrl, list(TOL=1e-15))
-  if(!("trace" %in% names(ctrl))) ctrl<-c(ctrl, list(trace=0))
-  
-  para <- c(0.52,0.85, 2.77,sqrt(var(data[,1])),0.72)
-  if(ModelType==1) para <- c(para,2.10)
-  if(ModelType==2) para <- c(para,-1.5,	0.72,	-0.09,	0.04,	2.10)
-  if(LEVIER)       para <- c(para,1.5,0.87568)
-  para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
+  ctrls <- list(... = ...)
+  ctrl  <- NULL
+  if(!("control" %in% names(ctrls))) ctrl<-ctrls$control
+  if(!("TOL" %in% names(ctrls))){
+    ctrl<-c(ctrl, list(TOL=1e-15))
+  }else{
+    if(!is.numeric(ctrls$TOL)){
+      ctrl<-c(ctrl, list(TOL=1e-15))
+    }else{
+      ctrl<-c(ctrl, list(TOL=ctrls$TOL))
+    }
+  }
+  if(!("trace" %in% names(ctrls))){
+    ctrl<-c(ctrl, list(trace=0))
+  }else{
+    if(!is.numeric(ctrls$trace)){
+      ctrl<-c(ctrl, list(trace=0))
+    }else{
+      ctrl<-c(ctrl, list(trace=ctrls$trace))
+    }
+  }
   
   vars<-c("omega","a","b","sigma","v0")
-  if(ModelType==1) vars <- c(vars,"shape")
-  if(ModelType==2) vars <- c(vars,"xi","varphi","delta1","delta2","shape")
-  if(LEVIER)        vars <- c(vars,"l","theta")
-  names(para)<-vars
-  
-  t1<-0
-  while(is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-    if(t1>10) break
-    
-    para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
-    
-    t1<-t1+1
+  LB<-rep(-10,5)
+  UB<-rep(10,5)
+  if(ModelType==1) {
+    vars <- c(vars,"shape")
+    LB<-c(LB,-10)
+    UB<-c(UB,10)
+  }else if(ModelType==2) {
+    vars <- c(vars,"xi","varphi","delta1","delta2","shape")
+    LB<-c(LB,rep(-2,4),-10)
+    UB<-c(UB,rep(2,4),10)
+  }
+  if(LEVIER) {
+    vars <- c(vars,"l","theta")
+    LB<-c(LB,-10,-10)
+    UB<-c(UB,10,10)
   }
   
-  convergence <- 1
+  if("LB" %in% names(ctrls)){
+    if((length(ctrls$LB)==length(vars)) & is.numeric(ctrls$LB)){
+      LB<-ctrls$LB
+    }else{
+      print("MDSVfit() WARNING: Incorrect Lower Bound! set to default.")
+    }
+  }
+  
+  if("UB" %in% names(ctrls)){
+    if((length(ctrls$UB)==length(vars)) & is.numeric(ctrls$UB)){
+      UB<-ctrls$UB
+    }else{
+      print("MDSVfit() WARNING: Incorrect Upper Bound! set to default.")
+    }
+  }
+  
+  if("n.restarts" %in% names(ctrls)){
+    if(is.numeric(ctrls$n.restarts)){
+      n.restarts<-ctrls$n.restarts
+      if(!(n.restarts%%1==0)){
+        print("MDSVfit() WARNING: Incorrect n.restarts! set to 1.")
+        n.restarts<-1
+      }
+    }else{
+      print("MDSVfit() WARNING: Incorrect n.restarts! set to 1.")
+      n.restarts<-1
+    }
+  }else{
+    n.restarts<-1
+  }
+  
+  if("n.sim" %in% names(ctrls)){
+    if(is.numeric(ctrls$n.sim)){
+      n.sim<-ctrls$n.sim
+      if(!(n.sim%%1==0)){
+        print("MDSVfit() WARNING: Incorrect n.sim! set to 200.")
+        n.sim<-200
+      }
+    }else{
+      print("MDSVfit() WARNING: Incorrect n.sim! set to 200.")
+      n.sim<-200
+    }
+  }else{
+    n.sim<-200
+  }
+  
+  if("cluster" %in% names(ctrls)){
+    cluster <- ctrls$cluster
+    if ( (!is.null(cluster)) & (!("cluster" %in% class(cluster))) ) {
+      print("MDSVroll() WARNING: input cluster must be a cluster object the package parallel or set to NULL! cluster set to NULL")
+      cluster<-NULL
+    }
+  }else{
+    cluster<-NULL
+  }
+  
+  tmp <- c(0.52,0.85, 2.77,sqrt(var(data[,1])),0.72)
+  if(ModelType==1) tmp <- c(tmp,2.10)
+  if(ModelType==2) tmp <- c(tmp,-1.5,	0.72,	-0.09,	0.04,	2.10)
+  if(LEVIER)       tmp <- c(tmp,1.5,0.87568)
+  names(tmp)           <- vars
+  
+  if(length(start.pars)){
+    if(!is.null(names(start.pars))){
+      para <- start.pars[vars]
+      if(!(sum(is.na(para))==0)){
+        print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+        nam_       <- names(para)[is.na(para)]
+        para[nam_] <- tmp[nam_]
+      }
+    }else{
+      if(length(start.pars)==length(vars)){
+        para        <- start.pars
+        names(para) <- vars
+        
+        if((para["omega"]>1) || (para["omega"]<0) || (para["a"]>1) || (para["a"]<0) || (para["b"]<=1) ||
+           (para["sigma"]<=0) || (para["v0"]>1) || (para[v0]<0)) {
+          print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+          para <- NULL
+        }else if(((ModelType==1) & (para["shape"]<=0)) || ((ModelType==2) & (para[10]<=0))){
+          print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+          para <- NULL
+        }else if(LEVIER){
+          if(ModelType==0){
+            if( (para[6]<0) || (para[7]>1) || (para[7]<0) ){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }else if(ModelType==1){
+            if((para[7]<=0) || (para[8]>1) || (para[8]<0)){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }else if(ModelType==2){
+            if((para[11]<=0) || (para[12]>1) || (para[12]<0)){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }
+        }
+        
+      }else{
+        print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+        para <- NULL
+      }
+    }
+  }else{
+    para <- NULL
+  }
+  
   oldw        <- getOption("warn")
   options(warn = -1)
-  if(t1<11){
+  if(!is.null(para)){
+    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
     opt<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
-    if(!(class(opt) =='try-error')){
-      params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
-      names(params)<-vars
-    }
   }else{
-    opt<-NULL
-  }
-  
-  
-  if(is.null(opt) || (class(opt) =='try-error') || (round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
-      (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
-      (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
-      (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
-      ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
-      ( LEVIER & (round(params["l"],5)==0)) ){
-    
-    para <- c(0.25,0.75, 1.09,0.5*sqrt(var(data[,1])),0.23)
-    if(ModelType==1) para <- c(para,1.05)
-    if(ModelType==2) para <- c(para,-3.75,	0.31,	-0.25,	0.01,	1.05)
-    if(LEVIER)       para <- c(para,0.75,0.25)
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    names(para)<-vars
-    
-    t1<-0
-    while(is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      if(t1>10) break
-      
-      para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
-      
-      t1<-t1+1
-    }
-    
-    if(t1<11){
-      opt2<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
-      if(!(class(opt2) =='try-error')){
-        params<-workNat(para=opt2$pars,LEVIER=LEVIER,Model_type=ModelType)
-        names(params)<-vars
-        if((class(opt) =='try-error') || is.null(opt)){
-          opt <- opt2
-        }else if(-as.numeric(opt$values[length(opt$values)]) < -as.numeric(opt2$values[length(opt2$values)])){
-          opt <- opt2
-        }else{
-          if( !((round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
-                (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
-                (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
-                (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
-                ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
-                ( LEVIER & (round(params["l"],5)==0))) ){
-            opt <- opt2
-            convergence <- 0
-          }else{
-            params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
-            names(params)<-vars
-          }
-        }
-      }
-    }
-  }else{
-    convergence <- 0
-  }
-  
-  if(convergence) if( is.null(opt) || (class(opt) =='try-error') || (round(params["omega"],5)==0) || 
-                      (round(params["omega"],5)==1) || (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
-      (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
-      (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
-      ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
-      ( LEVIER & (round(params["l"],5)==0)) ){
-    
-    para <- c(0.79,0.99, 10.5,2*sqrt(var(data[,1])),0.95)
-    if(ModelType==1) para <- c(para,5.15)
-    if(ModelType==2) para <- c(para,-0.1,	0.93,	-0.02,	0.09,	5.15)
-    if(LEVIER)       para <- c(para,5.15,0.99)
-    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
-    names(para)<-vars
-    
-    t1<-0
-    while(!is.nan(logLik(ech=data,para_tilde=para_tilde,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N))){
-      if(t1>10) break
-      
-      para_tilde <- para_tilde+mean(para_tilde)*sample(c(-1,1),length(para_tilde),T)
-      
-      t1<-t1+1
-    }
-    
-    if(t1<11){
-      opt2<-try(solnp(pars=para_tilde,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
-      if(!(class(opt2) =='try-error')){
-        params<-workNat(para=opt2$pars,LEVIER=LEVIER,Model_type=ModelType)
-        names(params)<-vars
-        if((class(opt) =='try-error') || is.null(opt)){
-          opt <- opt2
-        }else if(-as.numeric(opt$values[length(opt$values)]) < -as.numeric(opt2$values[length(opt2$values)])){
-          opt <- opt2
-        }else{
-          if( !((round(params["omega"],5)==0) || (round(params["omega"],5)==1) ||
-                (round(params["a"],5)==0) || (round(params["a"],5)==1) ||
-                (round(params["v0"],5)==0) || (round(params["v0"],5)==1) ||
-                (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
-                ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
-                ( LEVIER & (round(params["l"],5)==0))) ){
-            opt <- opt2
-            convergence <- 0
-          }else{
-            params<-workNat(para=opt$pars,LEVIER=LEVIER,Model_type=ModelType)
-            names(params)<-vars
-          }
-        }
-      }
-    }
+    opt<-try(gosolnp(pars=NULL,fun=logLik,ech=data,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl,
+                     LB=LB,UB=UB,n.restarts=n.restarts,n.sim=n.sim,cluster=cluster),silent=T)
   }
   options(warn = oldw)
   
-  if(convergence){
-    if(is.null(opt) || (class(opt) =='try-error')){
-      stop("MDSVfit() ERROR: Fail to converge!")
-    }else if((round(params["omega"],5)==0) || (round(params["omega"],5)==1) || (round(params["a"],5)==0) ||
-             (round(params["a"],5)==1) ||(round(params["v0"],5)==0) ||(round(params["v0"],5)==1) ||
-             (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
-             ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
-             ( LEVIER & (round(params["l"],5)==0)) ){
-      print("MDSVfit() WARNING: Fail to converge! Return the best results found.")
-    }
+  if(class(opt) =='try-error'){
+    stop("MDSVfit() ERROR: Fail to converge!")
+  }else{
+    params<-workNat(opt$pars, LEVIER=LEVIER, Model_type=ModelType)
+    names(params)<-vars
+  } 
+  
+  if((round(params["omega"],5)==0) || (round(params["omega"],5)==1) || (round(params["a"],5)==0) ||
+           (round(params["a"],5)==1) ||(round(params["v0"],5)==0) ||(round(params["v0"],5)==1) ||
+           (round(params["b"],5)==1) || ( 0 %in% round(params["a"]^(params["b"]^c(0:N)),5) ) ||
+           ( LEVIER & ((round(params["theta"],5)==0) || (round(params["theta"],5)==1))) ||
+           ( LEVIER & (round(params["l"],5)==0)) ){
+    print("MDSVfit() WARNING: Fail to converge! Return the best results found.")
   }
   
   ### Results
@@ -286,7 +309,7 @@ MDSVfit<-function(N,K,data,ModelType=0,LEVIER=FALSE,...){
             LEVIER        = LEVIER, 
             N             = N, 
             K             = K, 
-            convergence   = convergence,
+            convergence   = opt$convergence,
             estimates     = params, 
             LogLikelihood = -as.numeric(opt$values[length(opt$values)]),
             AIC           = -as.numeric(opt$values[length(opt$values)])-length(params), 

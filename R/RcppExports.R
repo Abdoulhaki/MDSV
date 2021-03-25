@@ -25,8 +25,8 @@ levierVolatility <- function(ech, para, Nl = 70L, Model_type = 0L) {
     .Call(`_MDSV_levierVolatility`, ech, para, Nl, Model_type)
 }
 
-logLik <- function(ech, para_tilde, Model_type = 0L, LEVIER = FALSE, K = 2L, N = 2L, Nl = 70L) {
-    .Call(`_MDSV_logLik`, ech, para_tilde, Model_type, LEVIER, K, N, Nl)
+logLik <- function(para_tilde, ech, Model_type = 0L, LEVIER = FALSE, K = 2L, N = 2L, Nl = 70L) {
+    .Call(`_MDSV_logLik`, para_tilde, ech, Model_type, LEVIER, K, N, Nl)
 }
 
 logLik2 <- function(ech, para, Model_type = 0L, LEVIER = FALSE, K = 2L, N = 2L, r = 0, t = 2L, Nl = 70L) {

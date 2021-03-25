@@ -107,7 +107,7 @@
 #' @import Rcpp
 #' @import KScorrect
 #' @importFrom mhsmm sim.mc
-#' @importFrom Rsolnp solnp
+#' @importFrom Rsolnp solnp gosolnp
 #' @importFrom foreach foreach %dopar%
 #' @import doSNOW
 MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpred = 10000, forecast.length = 500, 
@@ -264,20 +264,160 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
   colnames(model_add) <- vars
   model_rvt <- cbind(model_rvt, model_add)
   
-  
   ### Some constants
-  ctrl <- list(TOL=1e-15, trace=0)
-  para<-c(0.52,0.99, 2.77,sqrt(var(data[,1])),0.72)
-  if(ModelType==1) para <- c(para,2.10)
-  if(ModelType==2) para <- c(para,-0.5,	0.93,	-0.09,	0.04,	2.10)
-  if(LEVIER)       para <- c(para,0.78,0.87568)
+  ctrls <- list(... = ...)
+  ctrl  <- NULL
+  if(!("control" %in% names(ctrls))) ctrl<-ctrls$control
+  if(!("TOL" %in% names(ctrls))){
+    ctrl<-c(ctrl, list(TOL=1e-15))
+  }else{
+    if(!is.numeric(ctrls$TOL)){
+      ctrl<-c(ctrl, list(TOL=1e-15))
+    }else{
+      ctrl<-c(ctrl, list(TOL=ctrls$TOL))
+    }
+  }
+  if(!("trace" %in% names(ctrls))){
+    ctrl<-c(ctrl, list(trace=0))
+  }else{
+    if(!is.numeric(ctrls$trace)){
+      ctrl<-c(ctrl, list(trace=0))
+    }else{
+      ctrl<-c(ctrl, list(trace=ctrls$trace))
+    }
+  }
   
-  para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
   vars<-c("omega","a","b","sigma","v0")
-  if(ModelType==1) vars <- c(vars,"shape")
-  if(ModelType==2) vars <- c(vars,"xi","varphi","delta1","delta2","shape")
-  if(LEVIER)       vars <- c(vars,"l","theta")
+  LB<-rep(-10,5)
+  UB<-rep(10,5)
+  if(ModelType==1) {
+    vars <- c(vars,"shape")
+    LB<-c(LB,-10)
+    UB<-c(UB,10)
+  }else if(ModelType==2) {
+    vars <- c(vars,"xi","varphi","delta1","delta2","shape")
+    LB<-c(LB,rep(-2,4),-10)
+    UB<-c(UB,rep(2,4),10)
+  }
+  if(LEVIER) {
+    vars <- c(vars,"l","theta")
+    LB<-c(LB,-10,-10)
+    UB<-c(UB,10,10)
+  }
   
+  if("LB" %in% names(ctrls)){
+    if((length(ctrls$LB)==length(vars)) & is.numeric(ctrls$LB)){
+      LB<-ctrls$LB
+    }else{
+      print("MDSVfit() WARNING: Incorrect Lower Bound! set to default.")
+    }
+  }
+  
+  if("UB" %in% names(ctrls)){
+    if((length(ctrls$UB)==length(vars)) & is.numeric(ctrls$UB)){
+      UB<-ctrls$UB
+    }else{
+      print("MDSVfit() WARNING: Incorrect Upper Bound! set to default.")
+    }
+  }
+  
+  if("n.restarts" %in% names(ctrls)){
+    if(is.numeric(ctrls$n.restarts)){
+      n.restarts<-ctrls$n.restarts
+      if(!(n.restarts%%1==0)){
+        print("MDSVfit() WARNING: Incorrect n.restarts! set to 1.")
+        n.restarts<-1
+      }
+    }else{
+      print("MDSVfit() WARNING: Incorrect n.restarts! set to 1.")
+      n.restarts<-1
+    }
+  }else{
+    n.restarts<-1
+  }
+  
+  if("n.sim" %in% names(ctrls)){
+    if(is.numeric(ctrls$n.sim)){
+      n.sim<-ctrls$n.sim
+      if(!(n.sim%%1==0)){
+        print("MDSVfit() WARNING: Incorrect n.sim! set to 200.")
+        n.sim<-200
+      }
+    }else{
+      print("MDSVfit() WARNING: Incorrect n.sim! set to 200.")
+      n.sim<-200
+    }
+  }else{
+    n.sim<-200
+  }
+  
+  tmp <- c(0.52,0.99, 2.77,sqrt(var(data[,1])),0.72)
+  if(ModelType==1) tmp <- c(tmp,2.10)
+  if(ModelType==2) tmp <- c(tmp,-1.5,	0.72,	-0.09,	0.04,	2.10)
+  if(LEVIER)       tmp <- c(tmp,1.5,0.87568)
+  names(tmp)           <- vars
+  
+  if("start.pars" %in% names(ctrls)){
+    if((length(ctrls$start.pars)==length(vars)) & is.numeric(ctrls$start.pars)){
+      start.pars <- ctrls$start.pars
+    }else{
+      start.pars <- NULL
+    }
+  }else{
+    start.pars <- NULL
+  }
+  
+  if(length(start.pars)){
+    if(!is.null(names(start.pars))){
+      para <- start.pars[vars]
+      if(!(sum(is.na(para))==0)){
+        print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+        nam_       <- names(para)[is.na(para)]
+        para[nam_] <- tmp[nam_]
+      }
+    }else{
+      if(length(start.pars)==length(vars)){
+        para        <- start.pars
+        names(para) <- vars
+        
+        if((para["omega"]>1) || (para["omega"]<0) || (para["a"]>1) || (para["a"]<0) || (para["b"]<=1) ||
+           (para["sigma"]<=0) || (para["v0"]>1) || (para[v0]<0)) {
+          print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+          para <- NULL
+        }else if(((ModelType==1) & (para["shape"]<=0)) || ((ModelType==2) & (para[10]<=0))){
+          print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+          para <- NULL
+        }else if(LEVIER){
+          if(ModelType==0){
+            if( (para[6]<0) || (para[7]>1) || (para[7]<0) ){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }else if(ModelType==1){
+            if((para[7]<=0) || (para[8]>1) || (para[8]<0)){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }else if(ModelType==2){
+            if((para[11]<=0) || (para[12]>1) || (para[12]<0)){
+              print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+              para <- NULL
+            }
+          }
+        }
+        
+      }else{
+        print("MDSVfit() WARNING: Incorrect start.pars! set to default.")
+        para <- NULL
+      }
+    }
+  }else{
+    para <- NULL
+  }
+  
+  if(!is.null(para)){
+    para_tilde <- natWork(para=para,LEVIER=LEVIER,Model_type=ModelType)
+  }
   
   ### Estimation
   update_date<-seq(0,forecast.length,by=refit.every)
@@ -291,22 +431,25 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     for(t in 0:(forecast.length-1)){
       ech    <- data[strt:(T-forecast.length+t),]
       
+      oldw <- getOption("warn")
+      options(warn = -1)
       if(t %in% update_date){
-        if(!is.null(opt)) para_tilde<-opt$pars
-        oldw <- getOption("warn")
-        options(warn = -1)
-        opt  <- try(solnp(pars=para_tilde,fun=logLik,ech=ech,Model_type=ModelType,K=K,
-                       LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
         
+        if(!is.null(para)){
+          if(!is.null(opt)) para_tilde<-opt$pars
+          opt<-try(solnp(pars=para_tilde,fun=logLik,ech=ech,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl),silent=T)
+        }else{
+          opt<-try(gosolnp(pars=NULL,fun=logLik,ech=ech,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl,
+                           LB=LB,UB=UB,n.restarts=n.restarts,n.sim=n.sim,cluster=cluster),silent=T)
+        }
         if (class(opt) =='try-error'){
           stop("MDSVroll(): Optimization ERROR")
         }
-        options(warn = oldw)
-        
         para <- workNat(opt$pars,LEVIER=LEVIER,Model_type=ModelType)
         
         if(refit.window == "moving") strt <- strt + refit.every
       }
+      options(warn = oldw)
       
       model[t+1,vars] <- round(para,5)
       if(!(ModelType == 1)){
@@ -322,7 +465,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
           va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
           if(class(va) =='try-error') {
-            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            va <- try(qmixnorm(VaR.alpha[iter], rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
             if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
           }else{
             model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
@@ -356,17 +499,22 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
     progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
     
-      Y<- foreach(t=update_date[!(update_date==forecast.length)], .export=c("solnp"), 
-                .packages =c("Rcpp","RcppArmadillo","RcppEigen"), .combine = rbind, .options.snow = opts) %dopar% { 
+      Y<- foreach(t=update_date[!(update_date==forecast.length)], .export=c("solnp", "gosolnp"), 
+                .packages =c("Rcpp","RcppArmadillo","RcppEigen","Rsolnp"), .combine = rbind, .options.snow = opts) %dopar% { 
 
       if(refit.window == "moving") strt <- (T-forecast.length) - window.size + t*refit.every
       ech    <- data[strt:(T-forecast.length+t),]
       if(!is.null(opt)) para_tilde<-opt$pars
       oldw <- getOption("warn")
       options(warn = -1)
-      opt  <- solnp(pars=para_tilde,fun=logLik,ech=ech,Model_type=ModelType,K=K,
-                        LEVIER=LEVIER,N=N,Nl=70,control=ctrl)
 
+      if(!is.null(para)){
+        if(!is.null(opt)) para_tilde<-opt$pars
+        opt<-solnp(pars=para_tilde,fun=logLik,ech=ech,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl)
+      }else{
+        opt<-gosolnp(pars=NULL,fun=logLik,ech=ech,Model_type=ModelType,K=K,LEVIER=LEVIER,N=N,Nl=70,control=ctrl,
+                         LB=LB,UB=UB,n.restarts=n.restarts,n.sim=n.sim)
+      }
       options(warn = oldw)
       
       para <- workNat(opt$pars,LEVIER=LEVIER,Model_type=ModelType)
@@ -385,7 +533,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
        if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
          va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
          if(class(va) =='try-error') {
-           va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+           va <- try(qmixnorm(VaR.alpha[iter], rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
            if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
          }else{
            model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
@@ -411,13 +559,15 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
       
     model[update_date[!(update_date==forecast.length)]+1,]<-Y
     
+    strt <- (T-forecast.length) - window.size
     cat("Estimation step 2: \n")
     pb <- txtProgressBar(min=0, max = (forecast.length-1), style = 3)
     for(t in 0:(forecast.length-1)){
-      ech    <- data[1:(T-forecast.length+t),]
+      ech    <- data[strt:(T-forecast.length+t),]
       
       if(t %in% update_date){
         para <- unlist(model[t+1,vars])
+        if(refit.window == "moving") strt <- strt + refit.every
         next
       }
       
@@ -435,7 +585,7 @@ MDSVroll<-function(N, K, data, ModelType=0, LEVIER=FALSE, n.ahead = 1, n.bootpre
         if(calculate.VaR) for(iter in 1:length(VaR.alpha)){
           va <- try(qmist2n(VaR.alpha[iter], sigma=sig, p=pi_0),silent=T)
           if(class(va) =='try-error') {
-            va <- try(qmixnorm(.95, rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
+            va <- try(qmixnorm(VaR.alpha[iter], rep(0,length(sig)), sqrt(sig), pi_0),silent=T)
             if(!(class(va) =='try-error')) model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va
           }else{
             model[t+1,paste0('VaR',100*(1-VaR.alpha[iter]))] <- va

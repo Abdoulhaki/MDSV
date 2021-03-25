@@ -4,7 +4,7 @@
 \alias{MDSVfit}
 \title{MDSV Fitting}
 \usage{
-MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
+MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, start.pars = list(), ...)
 }
 \arguments{
 \item{N}{An integer designing the number of components for the MDSV process}
@@ -16,6 +16,8 @@ MDSVfit(N, K, data, ModelType = 0, LEVIER = FALSE, ...)
 \item{ModelType}{An integer designing the type of model to be fit. \eqn{0} for univariate log-returns, \eqn{1} for univariate realized variances and \eqn{2} for joint log-return and realized variances.}
 
 \item{LEVIER}{if \code{TRUE}, estime the MDSV model with leverage.}
+
+\item{start.pars}{List of staring parameters for the optimization routine. These are not usually required unless the optimization has problems converging.}
 
 \item{...}{Further options for the \code{\link{solnp}} solver of the \pkg{Rsolnp} package.}
 }

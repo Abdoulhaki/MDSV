@@ -87,19 +87,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // logLik
-double logLik(const Eigen::MatrixXd& ech, const Eigen::Map<Eigen::VectorXd>& para_tilde, const int& Model_type, const bool& LEVIER, const int& K, const int& N, const int& Nl);
-RcppExport SEXP _MDSV_logLik(SEXP echSEXP, SEXP para_tildeSEXP, SEXP Model_typeSEXP, SEXP LEVIERSEXP, SEXP KSEXP, SEXP NSEXP, SEXP NlSEXP) {
+double logLik(const Eigen::Map<Eigen::VectorXd>& para_tilde, const Eigen::MatrixXd& ech, const int& Model_type, const bool& LEVIER, const int& K, const int& N, const int& Nl);
+RcppExport SEXP _MDSV_logLik(SEXP para_tildeSEXP, SEXP echSEXP, SEXP Model_typeSEXP, SEXP LEVIERSEXP, SEXP KSEXP, SEXP NSEXP, SEXP NlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type ech(echSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type para_tilde(para_tildeSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type ech(echSEXP);
     Rcpp::traits::input_parameter< const int& >::type Model_type(Model_typeSEXP);
     Rcpp::traits::input_parameter< const bool& >::type LEVIER(LEVIERSEXP);
     Rcpp::traits::input_parameter< const int& >::type K(KSEXP);
     Rcpp::traits::input_parameter< const int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const int& >::type Nl(NlSEXP);
-    rcpp_result_gen = Rcpp::wrap(logLik(ech, para_tilde, Model_type, LEVIER, K, N, Nl));
+    rcpp_result_gen = Rcpp::wrap(logLik(para_tilde, ech, Model_type, LEVIER, K, N, Nl));
     return rcpp_result_gen;
 END_RCPP
 }

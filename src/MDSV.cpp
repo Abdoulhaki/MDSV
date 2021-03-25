@@ -163,8 +163,8 @@ Eigen::VectorXd jrv_dens(const double &x,const double &shape,const Eigen::Vector
 }
 
 // [[Rcpp::export]]
-double logLik(const Eigen::MatrixXd &ech,
-              const Eigen::Map<Eigen::VectorXd> &para_tilde, 
+double logLik(const Eigen::Map<Eigen::VectorXd> &para_tilde, 
+              const Eigen::MatrixXd &ech,
               const int &Model_type=0,
               const bool &LEVIER=false,
               const int &K=2,
